@@ -4,6 +4,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { isSubscriptionActive } from '@/lib/utils';
 import {
   BookOpen,
   Headphones,
@@ -81,7 +82,7 @@ const DEFAULT_FALLBACK_TESTS: MockTestItem[] = [
     is_premium: false,
   },
   {
-    id: 'c3333333-3333-3333-3333-333333333333',
+    id: 'e5555555-5555-5555-5555-555555555555',
     title: 'Academic Listening Mock Test 1',
     test_category: 'full_mock',
     module_type: 'listening',
@@ -101,7 +102,7 @@ export default function TestsCatalogPage() {
   const [tests, setTests] = useState<MockTestItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedModule, setSelectedModule] = useState<'all' | 'reading' | 'listening' | 'writing' | 'speaking'>('all');
-  const [userSubscriptionTier, setUserSubscriptionTier] = useState<string>('free');
+  const [isUserPro, setIsUserPro] = useState<boolean>(false);
 
   useEffect(() => {
     async function loadTestsAndUser() {
@@ -120,9 +121,7 @@ export default function TestsCatalogPage() {
             .eq('id', user.id)
             .maybeSingle();
 
-          if (profile?.subscription_tier) {
-            setUserSubscriptionTier(profile.subscription_tier);
-          }
+          setIsUserPro(isSubscriptionActive(profile));
         }
 
         // Fetch all full_mock tests from public.tests
@@ -150,10 +149,6 @@ export default function TestsCatalogPage() {
 
     loadTestsAndUser();
   }, []);
-
-  const isUserPro = useMemo(() => {
-    return userSubscriptionTier !== 'free';
-  }, [userSubscriptionTier]);
 
   const filteredTests = useMemo(() => {
     if (selectedModule === 'all') return tests;

@@ -2,11 +2,18 @@
 
 import React from 'react';
 import { QuestionItem } from '@/lib/types';
+import { extractOptionToken } from '@/lib/ielts-scoring';
 import { useExamStore } from '@/store/useExamStore';
 
 interface QuestionRendererProps {
   question: QuestionItem;
   questionNumber: number;
+}
+
+function getOptionValue(opt: string): string {
+  const trimmed = opt.trim();
+  const match = trimmed.match(/^([A-Za-z]{1,4})\s*[.):-]\s+.+$/);
+  return match ? match[1] : trimmed;
 }
 
 export function QuestionRenderer({ question, questionNumber }: QuestionRendererProps) {
@@ -87,7 +94,11 @@ export function QuestionRenderer({ question, questionNumber }: QuestionRendererP
         return (
           <div className="space-y-2 mt-3">
             {options.map((opt, idx) => {
-              const isChecked = answer === opt;
+              const optValue = getOptionValue(opt);
+              const isChecked =
+                answer === opt ||
+                answer === optValue ||
+                (answer !== '' && extractOptionToken(answer) === extractOptionToken(opt));
               return (
                 <label
                   key={idx}
@@ -100,10 +111,53 @@ export function QuestionRenderer({ question, questionNumber }: QuestionRendererP
                   <input
                     type="radio"
                     name={`q-${questionNumber}`}
-                    value={opt}
+                    value={optValue}
                     checked={isChecked}
-                    onChange={() => handleSelectOption(opt)}
+                    onChange={() => handleSelectOption(optValue)}
                     className="w-4 h-4 mt-0.5 text-blue-600 focus:ring-blue-500 border-neutral-300 cursor-pointer"
+                  />
+                  <span className="leading-snug">{opt}</span>
+                </label>
+              );
+            })}
+          </div>
+        );
+      }
+
+      case 'MCQ_MULTIPLE': {
+        const options = question.options || [];
+        const selectedList = answer
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+
+        const toggleMultiOption = (optVal: string) => {
+          const exists = selectedList.includes(optVal);
+          const next = exists
+            ? selectedList.filter((item) => item !== optVal)
+            : [...selectedList, optVal].sort();
+          handleSelectOption(next.join(', '));
+        };
+
+        return (
+          <div className="space-y-2 mt-3">
+            {options.map((opt, idx) => {
+              const optValue = getOptionValue(opt);
+              const isChecked = selectedList.includes(optValue);
+              return (
+                <label
+                  key={idx}
+                  className={`flex items-start gap-3 p-3 rounded-lg border text-sm cursor-pointer transition-colors ${
+                    isChecked
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-200 font-medium'
+                      : 'border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900 text-neutral-700 dark:text-neutral-300'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => toggleMultiOption(optValue)}
+                    className="w-4 h-4 mt-0.5 rounded text-blue-600 focus:ring-blue-500 border-neutral-300 cursor-pointer"
                   />
                   <span className="leading-snug">{opt}</span>
                 </label>
@@ -115,19 +169,23 @@ export function QuestionRenderer({ question, questionNumber }: QuestionRendererP
 
       case 'MATCHING_HEADINGS': {
         const options = question.options || [];
+        const normalizedCurrent = answer ? getOptionValue(answer) : '';
         return (
           <div className="mt-3">
             <select
-              value={answer}
+              value={normalizedCurrent}
               onChange={(e) => handleSelectOption(e.target.value)}
               className="w-full p-2.5 bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-lg text-sm text-neutral-800 dark:text-neutral-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             >
               <option value="">-- Select Heading --</option>
-              {options.map((opt, idx) => (
-                <option key={idx} value={opt}>
-                  {opt}
-                </option>
-              ))}
+              {options.map((opt, idx) => {
+                const optValue = getOptionValue(opt);
+                return (
+                  <option key={idx} value={optValue}>
+                    {opt}
+                  </option>
+                );
+              })}
             </select>
           </div>
         );

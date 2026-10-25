@@ -224,7 +224,7 @@ function WritingExamContent() {
           }
 
           // Initialize 60 minutes countdown in store
-          initExam(testId, 3600);
+          initExam(`${testId}:writing`, 3600);
         }
       } catch (err: any) {
         console.error('Error loading writing test:', err);

@@ -685,7 +685,15 @@ function SpeakingExamContent() {
                 </div>
 
                 <div className="flex-1 text-sm md:text-base text-neutral-200 leading-relaxed font-sans select-text pt-2">
-                  {currentResponse ? (
+                  {!isSpeechSupported ? (
+                    <textarea
+                      rows={4}
+                      value={currentResponse}
+                      onChange={(e) => setCurrentResponse(e.target.value)}
+                      placeholder="Speech recognition is unavailable in this browser. Type or paste your spoken response here so the AI Examiner can grade it..."
+                      className="w-full rounded-lg bg-neutral-950 border border-neutral-700 p-3 text-sm text-white focus:border-blue-500 focus:outline-none"
+                    />
+                  ) : currentResponse ? (
                     <span>{currentResponse}</span>
                   ) : (
                     <span className="text-neutral-500 italic">

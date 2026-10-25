@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { PLAN_CATALOG, SubscriptionPlanId } from '@/lib/types';
 
 const VALID_PLANS = ['crash_7d', 'pro_1m', 'pro_3m', 'pro_1y'] as const;
 const VALID_METHODS = ['bkash', 'nagad'] as const;
@@ -20,9 +21,8 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { planRequested, amountBdt, paymentMethod, senderPhone, trxId } = body;
+    const { planRequested, paymentMethod, senderPhone, trxId } = body;
 
-    // Validate plan
     if (!VALID_PLANS.includes(planRequested)) {
       return NextResponse.json(
         { error: 'Invalid plan selected.' },
@@ -30,7 +30,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate payment method
     if (!VALID_METHODS.includes(paymentMethod)) {
       return NextResponse.json(
         { error: 'Invalid payment method. Only bKash and Nagad are accepted.' },
@@ -38,7 +37,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate phone number: 11 digits starting with 01
     const cleanPhone = String(senderPhone || '').trim();
     if (!/^01\d{9}$/.test(cleanPhone)) {
       return NextResponse.json(
@@ -47,7 +45,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate trxId
     const cleanTrx = String(trxId || '').trim().toUpperCase();
     if (!cleanTrx || cleanTrx.length < 4) {
       return NextResponse.json(
@@ -56,22 +53,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate amount
-    const parsedAmount = Number(amountBdt);
-    if (!parsedAmount || parsedAmount <= 0) {
-      return NextResponse.json(
-        { error: 'Invalid payment amount.' },
-        { status: 400 }
-      );
-    }
+    const canonicalAmountBdt = PLAN_CATALOG[planRequested as SubscriptionPlanId].price;
 
-    // Insert into public.payment_requests
     const { data: requestRecord, error: dbErr } = await supabase
       .from('payment_requests')
       .insert({
         user_id: user.id,
         plan_requested: planRequested,
-        amount_bdt: parsedAmount,
+        amount_bdt: canonicalAmountBdt,
         payment_method: paymentMethod,
         sender_phone: cleanPhone,
         trx_id: cleanTrx,
@@ -94,7 +83,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Optional Telegram notification
     if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID) {
       try {
         await fetch(
@@ -104,7 +92,7 @@ export async function POST(req: NextRequest) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               chat_id: process.env.TELEGRAM_CHAT_ID,
-              text: `💰 New Payment!\nUser: ${user.email}\nPlan: ${planRequested}\nAmount: ${parsedAmount} BDT\nMethod: ${paymentMethod}\nPhone: ${cleanPhone}\nTrxID: ${cleanTrx}`,
+              text: `💰 New Payment!\nUser: ${user.email}\nPlan: ${planRequested}\nAmount: ${canonicalAmountBdt} BDT\nMethod: ${paymentMethod}\nPhone: ${cleanPhone}\nTrxID: ${cleanTrx}`,
             }),
           }
         );

@@ -209,37 +209,21 @@ export default function AdminPage() {
     try {
       setActionInProgress(req.id);
       setStatusMessage(null);
-      const supabase = createClient();
 
-      // 1. Update payment request status to approved
-      const { error: reqErr } = await supabase
-        .from('payment_requests')
-        .update({ status: 'approved' })
-        .eq('id', req.id);
+      const res = await fetch('/api/admin/payments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentId: req.id, action: 'approve' }),
+      });
 
-      if (reqErr) throw new Error(reqErr.message);
-
-      // 2. Calculate subscription expiration
-      const days = PLAN_DURATION_DAYS[req.plan_requested] || 30;
-      const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
-
-      // 3. Update user profile subscription
-      const { error: profErr } = await supabase
-        .from('profiles')
-        .update({
-          subscription_tier: req.plan_requested,
-          subscription_expires_at: expiresAt,
-        })
-        .eq('id', req.user_id);
-
-      if (profErr) throw new Error(profErr.message);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to approve payment');
 
       setStatusMessage({
         type: 'success',
-        text: `Approved payment for ${req.user_email}. Account upgraded to ${req.plan_requested} for ${days} days.`,
+        text: `Approved payment for ${req.user_email}. ${data.message}`,
       });
 
-      // Remove approved row from pending list
       setPayments((prev) => prev.filter((p) => p.id !== req.id));
     } catch (err: any) {
       setStatusMessage({
@@ -256,18 +240,19 @@ export default function AdminPage() {
     try {
       setActionInProgress(req.id);
       setStatusMessage(null);
-      const supabase = createClient();
 
-      const { error } = await supabase
-        .from('payment_requests')
-        .update({ status: 'rejected' })
-        .eq('id', req.id);
+      const res = await fetch('/api/admin/payments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentId: req.id, action: 'reject' }),
+      });
 
-      if (error) throw new Error(error.message);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to reject payment');
 
       setStatusMessage({
         type: 'success',
-        text: `Rejected payment request TrxID: ${req.trx_id}.`,
+        text: data.message || `Rejected payment request TrxID: ${req.trx_id}.`,
       });
 
       setPayments((prev) => prev.filter((p) => p.id !== req.id));
@@ -343,11 +328,11 @@ export default function AdminPage() {
 
     try {
       setUploadingTest(true);
-      const supabase = createClient();
 
-      const { data, error } = await supabase
-        .from('tests')
-        .insert({
+      const res = await fetch('/api/admin/tests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           title: testTitle.trim(),
           test_category: testCategory,
           module_type: moduleType,
@@ -355,11 +340,11 @@ export default function AdminPage() {
           audio_url: audioUrl.trim() || null,
           content_json: parsedContent,
           answer_key_json: parsedAnswerKey,
-        })
-        .select('id')
-        .single();
+        }),
+      });
 
-      if (error) throw new Error(error.message);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to upload test');
 
       alert(`Test uploaded successfully! Test ID: ${data?.id}`);
       setTestTitle('');

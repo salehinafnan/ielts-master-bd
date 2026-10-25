@@ -37,22 +37,23 @@ function ReadingExamContent() {
       try {
         setLoading(true);
         setErrorMsg(null);
-        const supabase = createClient();
-        const { data, error } = await supabase
-          .from('tests')
-          .select('id, title, content_json')
-          .eq('id', testId)
-          .single();
+        const res = await fetch(`/api/tests/${testId}`);
+        const data = await res.json();
 
-        if (error || !data) {
-          throw new Error(error?.message || 'Failed to load test details.');
+        if (res.status === 403) {
+          router.push('/pricing');
+          return;
+        }
+
+        if (!res.ok || !data) {
+          throw new Error(data?.error || 'Failed to load test details.');
         }
 
         if (isMounted) {
           setTestTitle(data.title);
           const parsedContent = data.content_json as ReadingListeningTestContent;
           setContent(parsedContent);
-          initExam(testId, 3600);
+          initExam(`${testId}:reading`, 3600);
         }
       } catch (err: any) {
         if (isMounted) {

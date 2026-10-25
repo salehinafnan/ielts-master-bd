@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { UserProfile } from '@/lib/types';
+import { getEffectiveSubscriptionTier } from '@/lib/utils';
+import { useExamStore } from '@/store/useExamStore';
 
 const TIER_LABELS: Record<
   UserProfile['subscription_tier'],
@@ -82,6 +84,7 @@ export default function DashboardLayout({
 
   const handleSignOut = async () => {
     setSigningOut(true);
+    useExamStore.getState().resetExam();
     await supabase.auth.signOut();
     router.push('/login');
     router.refresh();
@@ -97,7 +100,7 @@ export default function DashboardLayout({
       : []),
   ];
 
-  const currentTier = profile?.subscription_tier ?? 'free';
+  const currentTier = getEffectiveSubscriptionTier(profile);
   const tierConfig = TIER_LABELS[currentTier];
 
   const sidebarContent = (

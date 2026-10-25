@@ -663,3 +663,60 @@ ON CONFLICT (id) DO UPDATE SET
   title = EXCLUDED.title,
   content_json = EXCLUDED.content_json,
   answer_key_json = EXCLUDED.answer_key_json;
+
+
+-- -------------------------------------------------------------------------
+-- D) Academic Speaking Mock Test 1 (Full Mock, Free, Parts 1-3)
+-- -------------------------------------------------------------------------
+INSERT INTO public.tests (
+  id,
+  title,
+  test_category,
+  module_type,
+  is_premium,
+  content_json,
+  answer_key_json
+)
+VALUES (
+  'd4444444-4444-4444-4444-444444444444',
+  'Academic Speaking Mock Test 1',
+  'full_mock',
+  'speaking',
+  false,
+  '{
+    "part1": {
+      "topic": "Hometown & Daily Routine",
+      "questions": [
+        "Where is your hometown, and what do you like most about living there?",
+        "How has your hometown developed or changed over the past few years?",
+        "Do you prefer studying or working in the early morning or at night? Why?",
+        "What kinds of leisure activities do you enjoy most on your weekends?"
+      ]
+    },
+    "part2": {
+      "topic": "An Important Decision",
+      "cueCard": {
+        "title": "Describe a difficult decision that you made recently.",
+        "prompts": [
+          "What the decision was",
+          "When and why you had to make it",
+          "What other options or choices were available to you",
+          "And explain how you felt after making this decision."
+        ]
+      }
+    },
+    "part3": {
+      "topic": "Decision Making & Society",
+      "questions": [
+        "Why do you think some people find it especially difficult to make important decisions?",
+        "Should young adults always consult their family before making career choices?",
+        "How has modern artificial intelligence and data impacted personal decision-making?",
+        "In what ways do business leaders make balanced choices when under immense public pressure?"
+      ]
+    }
+  }'::jsonb,
+  NULL
+)
+ON CONFLICT (id) DO UPDATE SET
+  title = EXCLUDED.title,
+  content_json = EXCLUDED.content_json;

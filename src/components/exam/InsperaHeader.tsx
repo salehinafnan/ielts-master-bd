@@ -18,6 +18,7 @@ export function InsperaHeader({
   onNavigate,
 }: InsperaHeaderProps) {
   const remainingSeconds = useExamStore((state) => state.remainingSeconds);
+  const activeTestId = useExamStore((state) => state.activeTestId);
   const tickTimer = useExamStore((state) => state.tickTimer);
   const answers = useExamStore((state) => state.answers);
   const flaggedQuestions = useExamStore((state) => state.flaggedQuestions);
@@ -25,6 +26,7 @@ export function InsperaHeader({
   const [isScreenHidden, setIsScreenHidden] = useState(false);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const hasAutoSubmittedRef = React.useRef(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -32,6 +34,18 @@ export function InsperaHeader({
     }, 1000);
     return () => clearInterval(timer);
   }, [tickTimer]);
+
+  useEffect(() => {
+    if (
+      activeTestId &&
+      remainingSeconds === 0 &&
+      !hasAutoSubmittedRef.current &&
+      onSubmit
+    ) {
+      hasAutoSubmittedRef.current = true;
+      onSubmit();
+    }
+  }, [activeTestId, remainingSeconds, onSubmit]);
 
   const minutes = Math.floor(remainingSeconds / 60);
   const seconds = remainingSeconds % 60;

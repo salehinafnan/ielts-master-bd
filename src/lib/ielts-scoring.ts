@@ -40,8 +40,35 @@ export function calculateAcademicReadingBand(rawScore: number): number {
   return 0.0;
 }
 
+export function calculateGeneralReadingBand(rawScore: number): number {
+  if (rawScore === 40) return 9.0;
+  if (rawScore === 39) return 8.5;
+  if (rawScore >= 37) return 8.0;
+  if (rawScore === 36) return 7.5;
+  if (rawScore >= 34) return 7.0;
+  if (rawScore >= 32) return 6.5;
+  if (rawScore >= 30) return 6.0;
+  if (rawScore >= 27) return 5.5;
+  if (rawScore >= 23) return 5.0;
+  if (rawScore >= 19) return 4.5;
+  if (rawScore >= 15) return 4.0;
+  if (rawScore >= 12) return 3.5;
+  if (rawScore >= 9) return 3.0;
+  if (rawScore >= 6) return 2.5;
+  return 0.0;
+}
+
 function cleanAnswer(val: string): string {
   return val.trim().toLowerCase().replace(/[.,]+$/, '').trim();
+}
+
+export function extractOptionToken(val: string): string {
+  const trimmed = val.trim();
+  const match = trimmed.match(/^([A-Za-z]{1,4})\s*[.):-]\s+.+$/);
+  if (match) {
+    return match[1].toLowerCase();
+  }
+  return cleanAnswer(trimmed);
 }
 
 export function checkObjectiveAnswer(userAnswer: string, acceptableAnswers: string[]): boolean {
@@ -52,13 +79,26 @@ export function checkObjectiveAnswer(userAnswer: string, acceptableAnswers: stri
   if (!cleanedUser) {
     return false;
   }
-  return acceptableAnswers.some((acceptable) => cleanAnswer(acceptable) === cleanedUser);
+
+  const userToken = extractOptionToken(userAnswer);
+
+  return acceptableAnswers.some((acceptable) => {
+    const cleanedAcc = cleanAnswer(acceptable);
+    const accToken = extractOptionToken(acceptable);
+    return (
+      cleanedAcc === cleanedUser ||
+      accToken === userToken ||
+      cleanedAcc === userToken ||
+      accToken === cleanedUser
+    );
+  });
 }
 
 const CATEGORY_RECOMMENDATIONS: Record<QuestionCategory, string> = {
   TFNG: 'Practice skimming for True/False/Not Given — focus on identifying keywords that match or contradict the passage.',
   YNNG: "Focus on understanding the writer's claims and arguments rather than looking solely for factual data.",
   MCQ_SINGLE: 'Eliminate unlikely options first and look out for absolute qualifying words such as always or never.',
+  MCQ_MULTIPLE: 'Verify each selected option independently against the passage rather than relying on general impressions.',
   MATCHING_HEADINGS: 'Read the topic sentences and concluding sentences of paragraphs before checking the heading list.',
   FILL_BLANKS: 'Check grammatical agreement and make sure you do not exceed the stated word or number limit.',
   SUMMARY_COMPLETION: 'Determine the expected part of speech for each gap and search for paraphrased expressions.',

@@ -61,44 +61,17 @@ export default function CambridgeGraderPage() {
         .limit(1)
         .maybeSingle();
 
-      let targetTestId = existingTest?.id;
-
-      if (!targetTestId) {
-        setStatusMessage('Initializing Cambridge companion test record...');
-        const { data: newTest, error: insertError } = await supabase
-          .from('tests')
-          .insert({
-            title: `Cambridge ${book} Test ${testNum} (${moduleType})`,
-            test_category: 'cambridge_companion',
-            module_type: moduleType.toLowerCase(),
-            is_premium: false,
-            content_json: {
-              sections: [
-                {
-                  sectionNumber: 1,
-                  title: `Cambridge ${book} Test ${testNum} Questions 1-40`,
-                  questions: Array.from({ length: 40 }, (_, i) => ({
-                    questionNumber: i + 1,
-                    category: 'FILL_BLANKS',
-                    promptText: `Cambridge ${book} Test ${testNum} Question ${i + 1}`,
-                    correctAnswers: [],
-                    explanation: 'Official Cambridge answer key reference.',
-                  })),
-                },
-              ],
-            },
-          })
-          .select('id')
-          .single();
-
-        if (insertError || !newTest) {
-          throw new Error(
-            insertError?.message ||
-              `Could not find or initialize Cambridge ${book} Test ${testNum} answer key.`
-          );
-        }
-        targetTestId = newTest.id;
+      if (searchError) {
+        throw new Error(searchError.message);
       }
+
+      if (!existingTest?.id) {
+        throw new Error(
+          `The official answer key for Cambridge ${book} Test ${testNum} (${moduleType}) has not been uploaded to the database yet. Try Cambridge 18 Test 1 (Reading) or ask an administrator to upload this answer key in the Admin Portal.`
+        );
+      }
+
+      const targetTestId = existingTest.id;
 
       setStatusMessage('Grading answers and generating weakness analytics...');
 
