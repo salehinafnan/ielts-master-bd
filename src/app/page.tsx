@@ -145,7 +145,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-slate-800 py-8 bg-slate-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>© 2025 IELTS Master BD. All rights reserved.</p>
+          <p>© 2026 IELTS Master BD. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <Link href="/pricing" className="hover:text-slate-300">
               bKash / Nagad Subscriptions
