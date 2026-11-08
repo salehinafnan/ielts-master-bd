@@ -35,6 +35,7 @@ export async function proxy(request: NextRequest) {
 
   const protectedPrefixes = [
     '/dashboard',
+    '/academy',
     '/tests',
     '/cambridge-grader',
     '/exam',

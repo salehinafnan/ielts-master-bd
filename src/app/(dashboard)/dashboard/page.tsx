@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import UniversityMatcher from '@/components/dashboard/UniversityMatcher';
 import WeaknessAnalytics from '@/components/dashboard/WeaknessAnalytics';
+import BanglaBlindspotDashboard from '@/components/dashboard/BanglaBlindspotDashboard';
 import {
   History,
   BookOpen,
@@ -16,6 +17,7 @@ import {
   Loader2,
   Calendar,
   ArrowRight,
+  GraduationCap,
 } from 'lucide-react';
 
 interface RecentAttempt {
@@ -116,6 +118,12 @@ export default function DashboardPage() {
     loadDashboard();
   }, [router]);
 
+  const recentBandAverage =
+    attempts.length > 0
+      ? attempts.slice(0, 3).reduce((acc, a) => acc + a.band_score, 0) /
+        Math.min(attempts.length, 3)
+      : null;
+
   const getModuleIcon = (moduleType: string) => {
     const mod = (moduleType || '').toLowerCase();
     switch (mod) {
@@ -167,16 +175,31 @@ export default function DashboardPage() {
             Welcome back, {userName}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Monitor your IELTS progression, benchmark against global admissions, and refine your test skills.
+            Complete your 15-minute daily CD-IELTS sprint, track your Bangla L1 blindspots, and benchmark your band score.
           </p>
         </div>
-        <Link
-          href="/tests"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-blue-500 transition-colors w-full sm:w-fit"
-        >
-          Take a Mock Test <ArrowRight className="h-4 w-4" />
-        </Link>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Link
+            href="/academy"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 shadow-xs hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-white transition-colors"
+          >
+            <GraduationCap className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <span>Master Curriculum</span>
+          </Link>
+          <Link
+            href="/tests"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-blue-500 transition-colors"
+          >
+            <span>Take a Mock Test</span>
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
       </div>
+
+      {/* Row 0: Dynamic Predicted Band & Bangla Blindspot Dashboard */}
+      <section aria-label="Bangla Blindspot & Predicted Band">
+        <BanglaBlindspotDashboard recentBandAverage={recentBandAverage} />
+      </section>
 
       {/* Row 1: University Matcher */}
       <section aria-label="University Matcher">

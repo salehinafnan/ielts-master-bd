@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   User,
+  GraduationCap,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { UserProfile } from '@/lib/types';
@@ -45,12 +46,54 @@ const TIER_LABELS: Record<
   },
 };
 
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+function NavLinks({
+  navItems,
+  onNavigate,
+}: {
+  navItems: NavItem[];
+  onNavigate: () => void;
+}) {
+  const pathname = usePathname();
+
+  return (
+    <nav className="space-y-1">
+      {navItems.map((item) => {
+        const Icon = item.icon;
+        const isActive =
+          pathname === item.href ||
+          (item.href !== '/dashboard' && pathname.startsWith(item.href));
+
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onNavigate}
+            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+              isActive
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
+            }`}
+          >
+            <Icon className="h-4 w-4 shrink-0" />
+            <span>{item.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
 
@@ -92,6 +135,7 @@ export default function DashboardLayout({
 
   const navItems = [
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
+    { href: '/academy', label: 'Master Curriculum', icon: GraduationCap },
     { href: '/tests', label: 'Mock Tests', icon: FileText },
     { href: '/cambridge-grader', label: 'Cambridge Grader', icon: BookOpen },
     { href: '/pricing', label: 'Pricing & Plans', icon: CreditCard },
@@ -149,30 +193,27 @@ export default function DashboardLayout({
           </div>
         </div>
 
-        <nav className="space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive =
-              pathname === item.href ||
-              (item.href !== '/dashboard' && pathname.startsWith(item.href));
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
-                }`}
-              >
-                <Icon className="h-4 w-4 shrink-0" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
+        <Suspense
+          fallback={
+            <nav className="space-y-1">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300"
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+          }
+        >
+          <NavLinks navItems={navItems} onNavigate={() => setMobileOpen(false)} />
+        </Suspense>
       </div>
 
       <div className="border-t border-slate-200/80 pt-4 dark:border-slate-800">

@@ -7,10 +7,12 @@ import { useExamStore } from '@/store/useExamStore';
 import { InsperaHeader } from '@/components/exam/InsperaHeader';
 import { MobileExamWarning } from '@/components/exam/MobileExamWarning';
 import { AIWritingEvaluation } from '@/lib/types';
+import { BANNED_CLICHES_DICTIONARY } from '@/lib/curriculum-data';
 import {
   Sparkles,
   Loader2,
   CheckCircle2,
+  AlertTriangle,
   Lock,
   BookOpen,
   FileCheck,
@@ -173,7 +175,6 @@ function WritingExamContent() {
   const setAnswer = useExamStore((state) => state.setAnswer);
   const initExam = useExamStore((state) => state.initExam);
 
-  // Load test details from Supabase
   useEffect(() => {
     if (!testId) return;
 
@@ -245,6 +246,15 @@ function WritingExamContent() {
   const currentEssay = answers[activeTask] || '';
   const currentMinWords = activeTask === 1 ? prompts.task1.minWords : prompts.task2.minWords;
   const currentWordCount = useMemo(() => getWordCount(currentEssay), [currentEssay]);
+
+  // Live Banned Cliché & Bangla L1 Preposition Detector
+  const detectedCliches = useMemo(() => {
+    if (!currentEssay) return [];
+    const lower = currentEssay.toLowerCase();
+    return BANNED_CLICHES_DICTIONARY.filter((item) =>
+      lower.includes(item.phrase.toLowerCase())
+    );
+  }, [currentEssay]);
 
   let wordBadgeClass = 'text-red-400 bg-red-950/60 border-red-500/40';
   let wordStatusText = `${currentMinWords - currentWordCount} words below minimum`;
@@ -772,6 +782,31 @@ function WritingExamContent() {
                   placeholder={`Write your IELTS Writing Task ${activeTask} essay here... (Spell-check is disabled to strictly simulate official Inspera CD-IELTS conditions)`}
                   className="flex-1 w-full bg-slate-900 text-slate-100 placeholder:text-slate-600 rounded-xl p-4 sm:p-5 text-sm sm:text-base leading-relaxed border border-slate-800 focus:border-blue-500 focus:outline-none resize-none font-sans"
                 />
+
+                {/* Real-time Banned Cliché & Bangla L1 Warning Bar */}
+                {detectedCliches.length > 0 && (
+                  <div className="mt-2.5 rounded-xl border border-amber-500/40 bg-amber-950/50 p-3 text-xs text-amber-200 space-y-1.5">
+                    <div className="font-bold flex items-center gap-1.5 text-amber-400">
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                      <span>
+                        Live Examiner Alert: {detectedCliches.length} Memorized Cliché / L1 Error Detected
+                      </span>
+                    </div>
+                    <div className="space-y-1">
+                      {detectedCliches.map((item) => (
+                        <div key={item.phrase} className="flex flex-wrap items-center gap-1.5">
+                          <span className="line-through text-rose-300 font-semibold">
+                            &ldquo;{item.phrase}&rdquo;
+                          </span>
+                          <span className="text-slate-400">→</span>
+                          <span className="text-emerald-300 font-bold">
+                            Use: &ldquo;{item.replacement}&rdquo;
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* BOTTOM TOOLBAR: WORD COUNTER & SUBMIT BUTTON */}
