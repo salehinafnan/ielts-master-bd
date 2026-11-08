@@ -53,14 +53,20 @@ export function HighlightableText({ paragraphId, html }: HighlightableTextProps)
     };
   }, []);
 
+  const openMenuAtCoords = (clientX: number, clientY: number, text: string) => {
+    const safeX = Math.min(Math.max(12, clientX), typeof window !== 'undefined' ? window.innerWidth - 200 : clientX);
+    const safeY = Math.min(Math.max(12, clientY), typeof window !== 'undefined' ? window.innerHeight - 150 : clientY);
+    setSelectedText(text);
+    setMenuPos({ x: safeX, y: safeY });
+  };
+
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     const selection = window.getSelection();
     const rawSelected = selection ? selection.toString().trim() : '';
 
     if (rawSelected.length >= 2) {
-      setSelectedText(rawSelected);
-      setMenuPos({ x: e.clientX, y: e.clientY });
+      openMenuAtCoords(e.clientX, e.clientY, rawSelected);
       return;
     }
 
@@ -68,13 +74,23 @@ export function HighlightableText({ paragraphId, html }: HighlightableTextProps)
     if (target && target.tagName.toLowerCase() === 'mark') {
       const markText = target.innerText.trim();
       if (markText.length > 0) {
-        setSelectedText(markText);
-        setMenuPos({ x: e.clientX, y: e.clientY });
+        openMenuAtCoords(e.clientX, e.clientY, markText);
         return;
       }
     }
 
     setMenuPos(null);
+  };
+
+  const handleTouchEnd = () => {
+    setTimeout(() => {
+      const selection = window.getSelection();
+      const rawSelected = selection ? selection.toString().trim() : '';
+      if (rawSelected.length >= 2 && selection && selection.rangeCount > 0) {
+        const rect = selection.getRangeAt(0).getBoundingClientRect();
+        openMenuAtCoords(rect.left + rect.width / 2 - 80, rect.bottom + 8, rawSelected);
+      }
+    }, 150);
   };
 
   const processedHtml = useMemo(() => {
@@ -134,12 +150,13 @@ export function HighlightableText({ paragraphId, html }: HighlightableTextProps)
       <div
         ref={containerRef}
         onContextMenu={handleContextMenu}
+        onTouchEnd={handleTouchEnd}
         dangerouslySetInnerHTML={{ __html: processedHtml }}
-        className="prose dark:prose-invert max-w-none text-neutral-800 dark:text-neutral-200 leading-relaxed select-text"
+        className="prose dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 leading-relaxed select-text text-sm sm:text-base"
       />
 
       {notes.length > 0 && (
-        <div className="mt-4 pt-3 border-t border-neutral-200 dark:border-neutral-800 space-y-2">
+        <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
           <span className="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
             <StickyNote className="w-3.5 h-3.5" />
             Passage Sticky Notes ({notes.length})
@@ -151,17 +168,17 @@ export function HighlightableText({ paragraphId, html }: HighlightableTextProps)
                 className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 text-xs flex items-start justify-between gap-2"
               >
                 <div className="space-y-1">
-                  <div className="italic text-neutral-500 dark:text-neutral-400 line-clamp-1">
+                  <div className="italic text-slate-500 dark:text-slate-400 line-clamp-1">
                     &ldquo;{n.quote}&rdquo;
                   </div>
-                  <div className="font-medium text-neutral-900 dark:text-amber-100">
+                  <div className="font-medium text-slate-900 dark:text-amber-100">
                     {n.noteText}
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => removeNote(paragraphId, n.id)}
-                  className="text-neutral-400 hover:text-rose-500 p-1 shrink-0"
+                  className="text-slate-400 hover:text-rose-500 p-1 shrink-0"
                   title="Delete note"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -179,12 +196,12 @@ export function HighlightableText({ paragraphId, html }: HighlightableTextProps)
             top: `${menuPos.y}px`,
             left: `${menuPos.x}px`,
           }}
-          className="fixed z-50 bg-neutral-900 border border-neutral-700 rounded-lg shadow-2xl py-1 text-xs text-neutral-200 min-w-[175px] animate-in fade-in zoom-in-95 duration-100"
+          className="fixed z-50 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-1 text-xs text-slate-200 min-w-[180px] animate-in fade-in zoom-in-95 duration-100"
         >
           <button
             type="button"
             onClick={handleApplyHighlight}
-            className="w-full text-left px-3 py-2 hover:bg-neutral-800 flex items-center gap-2 text-yellow-300 font-medium transition-colors"
+            className="w-full text-left px-3 py-2 hover:bg-slate-800 flex items-center gap-2 text-yellow-300 font-medium transition-colors"
           >
             <Highlighter className="w-3.5 h-3.5 text-yellow-400" />
             Highlight (Yellow)
@@ -192,7 +209,7 @@ export function HighlightableText({ paragraphId, html }: HighlightableTextProps)
           <button
             type="button"
             onClick={handleOpenNoteDialog}
-            className="w-full text-left px-3 py-2 hover:bg-neutral-800 flex items-center gap-2 text-amber-300 font-medium transition-colors border-t border-neutral-800"
+            className="w-full text-left px-3 py-2 hover:bg-slate-800 flex items-center gap-2 text-amber-300 font-medium transition-colors border-t border-slate-800"
           >
             <StickyNote className="w-3.5 h-3.5 text-amber-400" />
             Add Sticky Note
@@ -200,9 +217,9 @@ export function HighlightableText({ paragraphId, html }: HighlightableTextProps)
           <button
             type="button"
             onClick={handleClearHighlight}
-            className="w-full text-left px-3 py-2 hover:bg-neutral-800 flex items-center gap-2 text-neutral-300 hover:text-white transition-colors border-t border-neutral-800"
+            className="w-full text-left px-3 py-2 hover:bg-slate-800 flex items-center gap-2 text-slate-300 hover:text-white transition-colors border-t border-slate-800"
           >
-            <X className="w-3.5 h-3.5 text-neutral-400" />
+            <X className="w-3.5 h-3.5 text-slate-400" />
             Clear Highlight
           </button>
         </div>
@@ -212,7 +229,7 @@ export function HighlightableText({ paragraphId, html }: HighlightableTextProps)
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <form
             onSubmit={handleSaveNote}
-            className="bg-neutral-900 border border-neutral-700 rounded-xl max-w-md w-full p-5 text-white shadow-2xl space-y-3"
+            className="bg-slate-900 border border-slate-700 rounded-xl max-w-md w-full p-5 text-white shadow-2xl space-y-3"
           >
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-bold flex items-center gap-2 text-amber-400">
@@ -222,12 +239,12 @@ export function HighlightableText({ paragraphId, html }: HighlightableTextProps)
               <button
                 type="button"
                 onClick={() => setIsNoteModalOpen(false)}
-                className="text-neutral-400 hover:text-white"
+                className="text-slate-400 hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="text-xs text-neutral-400 italic bg-neutral-950 p-2.5 rounded border border-neutral-800 line-clamp-2">
+            <div className="text-xs text-slate-400 italic bg-slate-950 p-2.5 rounded border border-slate-800 line-clamp-2">
               &ldquo;{selectedText}&rdquo;
             </div>
             <textarea
@@ -237,19 +254,19 @@ export function HighlightableText({ paragraphId, html }: HighlightableTextProps)
               value={draftNote}
               onChange={(e) => setDraftNote(e.target.value)}
               placeholder="Write your note for this passage excerpt..."
-              className="w-full rounded-lg bg-neutral-950 border border-neutral-700 p-2.5 text-xs text-white focus:border-amber-400 focus:outline-none"
+              className="w-full rounded-lg bg-slate-950 border border-slate-700 p-2.5 text-xs text-white focus:border-amber-400 focus:outline-none"
             />
             <div className="flex justify-end gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setIsNoteModalOpen(false)}
-                className="px-3 py-1.5 rounded bg-neutral-800 text-xs text-neutral-300 hover:bg-neutral-700"
+                className="px-3 py-1.5 rounded-lg bg-slate-800 text-xs text-slate-300 hover:bg-slate-700"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-3.5 py-1.5 rounded bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs"
+                className="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs"
               >
                 Save Note
               </button>

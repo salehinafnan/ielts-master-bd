@@ -1,16 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useTransition } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { AISpeakingEvaluation } from '@/lib/types';
+import { MobileExamWarning } from '@/components/exam/MobileExamWarning';
 import {
   Mic,
   MicOff,
   Volume2,
-  VolumeX,
-  Play,
-  Square,
   CheckCircle2,
   AlertCircle,
   Clock,
@@ -19,12 +17,9 @@ import {
   Award,
   ChevronRight,
   ArrowRight,
-  RotateCcw,
+  ArrowLeft,
   Lock,
   BookOpen,
-  HelpCircle,
-  FileText,
-  Radio,
   ExternalLink,
 } from 'lucide-react';
 
@@ -133,7 +128,6 @@ function SpeakingExamContent() {
   const isRecordingRef = useRef<boolean>(false);
   const activeStreamRef = useRef<MediaStream | null>(null);
 
-  // 1. Initial test data & speech API verification
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const hasSpeech = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
@@ -181,7 +175,6 @@ function SpeakingExamContent() {
     };
   }, [testId]);
 
-  // 2. Browser Voice Synthesis (British Council Examiner style)
   const speakText = (text: string, onEnd?: () => void) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       if (onEnd) onEnd();
@@ -218,18 +211,15 @@ function SpeakingExamContent() {
     window.speechSynthesis.speak(utterance);
   };
 
-  // 3. Start Media Recording + Speech Recognition
   const startRecording = async () => {
     try {
       if (isRecordingRef.current) return;
 
-      // Request microphone access
       if (!activeStreamRef.current) {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         activeStreamRef.current = stream;
       }
 
-      // Initialize MediaRecorder
       audioChunksRef.current = [];
       const recorder = new MediaRecorder(activeStreamRef.current);
       recorder.ondataavailable = (e) => {
@@ -240,7 +230,6 @@ function SpeakingExamContent() {
       recorder.start();
       mediaRecorderRef.current = recorder;
 
-      // Initialize SpeechRecognition
       const SpeechRecognition =
         (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
@@ -273,7 +262,6 @@ function SpeakingExamContent() {
         };
 
         recognition.onend = () => {
-          // Restart recognition if phase is actively recording
           if (isRecordingRef.current) {
             try {
               recognition.start();
@@ -293,7 +281,6 @@ function SpeakingExamContent() {
     }
   };
 
-  // 4. Stop Recording & extract audio URL
   const stopRecording = (): Promise<string | undefined> => {
     return new Promise((resolve) => {
       isRecordingRef.current = false;
@@ -324,21 +311,18 @@ function SpeakingExamContent() {
     });
   };
 
-  // 5. State Machine Transition Handlers
   const handleStartExam = () => {
     setPhase('PART_1');
     setCurrentQIndex(0);
     setCurrentResponse('');
     setSegments([]);
 
-    // Prompt the first question
     const q1 = content.part1.questions[0];
     speakText(`Let's start with Part 1. ${q1}`, () => {
       startRecording();
     });
   };
 
-  // Handle advancing through questions in Part 1
   const handleNextPart1Question = async () => {
     const audioUrl = await stopRecording();
     const currentQText = content.part1.questions[currentQIndex];
@@ -361,7 +345,6 @@ function SpeakingExamContent() {
         startRecording();
       });
     } else {
-      // Transition to Part 2 Preparation
       setPhase('PART_2_PREP');
       setPrepSecondsLeft(60);
       speakText(
@@ -370,7 +353,6 @@ function SpeakingExamContent() {
     }
   };
 
-  // Countdown timer for Part 2 Prep (60 seconds)
   useEffect(() => {
     let timer: any = null;
     if (phase === 'PART_2_PREP') {
@@ -390,7 +372,6 @@ function SpeakingExamContent() {
     };
   }, [phase]);
 
-  // Start Part 2 Speaking (2 minutes)
   const handleStartPart2Speaking = () => {
     setPhase('PART_2_SPEAK');
     setSpeakSecondsLeft(120);
@@ -401,7 +382,6 @@ function SpeakingExamContent() {
     });
   };
 
-  // Countdown timer for Part 2 Speaking (120 seconds)
   useEffect(() => {
     let timer: any = null;
     if (phase === 'PART_2_SPEAK') {
@@ -421,7 +401,6 @@ function SpeakingExamContent() {
     };
   }, [phase]);
 
-  // Finish Part 2 & Transition to Part 3
   const handleFinishPart2 = async () => {
     const audioUrl = await stopRecording();
     const cueCard = content.part2.cueCard;
@@ -447,7 +426,6 @@ function SpeakingExamContent() {
     );
   };
 
-  // Handle advancing through questions in Part 3
   const handleNextPart3Question = async () => {
     const audioUrl = await stopRecording();
     const currentQText = content.part3.questions[currentQIndex];
@@ -471,7 +449,6 @@ function SpeakingExamContent() {
         startRecording();
       });
     } else {
-      // Exam Completed
       setPhase('COMPLETED');
       speakText(
         'Thank you very much. That is the end of the speaking test. You may now review your responses and receive your instant AI evaluation.'
@@ -479,7 +456,6 @@ function SpeakingExamContent() {
     }
   };
 
-  // 6. Submit Speaking Attempt for Instant AI Grading
   const handleGetAIFeedback = async () => {
     try {
       setIsGrading(true);
@@ -501,7 +477,7 @@ function SpeakingExamContent() {
       if (res.status === 403) {
         setUpgradeMessage(
           data.message ||
-            'You have reached your AI grading limit. Upgrade to IELTS Master BD Pro for unlimited AI evaluations.'
+            'You have reached your AI grading limit. Upgrade to IELTS Master BD Pro for more daily AI evaluations.'
         );
         setShowUpgradeModal(true);
         return;
@@ -524,40 +500,49 @@ function SpeakingExamContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-950 text-white flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
-        <p className="text-sm font-medium text-neutral-400">Loading IELTS Speaking Examiner...</p>
+        <p className="text-sm font-medium text-slate-400">Loading IELTS Speaking Examiner...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col select-none">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col select-none">
+      <MobileExamWarning moduleName="Speaking" />
+
       {/* HEADER BAR */}
-      <header className="h-14 bg-neutral-900 border-b border-neutral-800 text-white px-4 md:px-6 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-          <span className="font-semibold text-sm md:text-base text-neutral-200 truncate">
+      <header className="h-14 bg-slate-900 border-b border-slate-800 text-white px-3 sm:px-6 flex items-center justify-between gap-2 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <button
+            type="button"
+            onClick={() => router.push('/tests')}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
+            title="Exit to Tests Catalog"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+          <span className="font-semibold text-xs sm:text-sm md:text-base text-slate-200 truncate">
             {testTitle}
           </span>
         </div>
 
         {/* Live Mic Indicator */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           {isMicActive ? (
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-red-950/80 border border-red-500/50 text-red-400 text-xs font-bold tracking-wider">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+            <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-red-950/80 border border-red-500/50 text-red-400 text-[11px] sm:text-xs font-bold tracking-wider">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
               <span>RECORDING</span>
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-800 border border-neutral-700 text-neutral-400 text-xs font-medium">
+            <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-400 text-[11px] sm:text-xs font-medium">
               <MicOff className="w-3.5 h-3.5" />
               <span>MIC IDLE</span>
             </div>
           )}
 
           {isExaminerSpeaking && (
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-950/80 border border-blue-500/40 text-blue-400 text-xs font-semibold animate-pulse">
+            <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-blue-950/80 border border-blue-500/40 text-blue-400 text-[11px] sm:text-xs font-semibold animate-pulse">
               <Volume2 className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Examiner Speaking</span>
             </div>
@@ -571,62 +556,59 @@ function SpeakingExamContent() {
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
             <span>
-              Your browser doesn&apos;t support the Web Speech Recognition API. For live transcription,
-              we strongly recommend using <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong>.
+              Your browser doesn&apos;t support Web Speech Recognition. For live transcription, we strongly recommend <strong>Google Chrome</strong> on a PC.
             </span>
           </div>
         </div>
       )}
 
       {/* MAIN VIEWPORT */}
-      <main className="flex-1 flex flex-col p-4 md:p-8 max-w-4xl mx-auto w-full">
+      <main className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 max-w-4xl mx-auto w-full">
         {/* ================= 1. INTRO PHASE ================= */}
         {phase === 'INTRO' && (
-          <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 max-w-2xl mx-auto py-8">
-            <div className="w-20 h-20 rounded-3xl bg-blue-950/80 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-xl shadow-blue-950/50">
-              <Mic className="w-10 h-10" />
+          <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 max-w-2xl mx-auto py-6">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-blue-950/80 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-xl shadow-blue-950/50">
+              <Mic className="w-8 h-8 sm:w-10 sm:h-10" />
             </div>
 
             <div className="space-y-3">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-neutral-800 text-blue-400 border border-neutral-700">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-slate-800 text-blue-400 border border-slate-700">
                 Official British Council Format
               </div>
-              <h1 className="text-3xl md:text-4xl font-black text-white">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white">
                 IELTS Speaking Test Simulator
               </h1>
-              <p className="text-sm text-neutral-400 leading-relaxed max-w-lg mx-auto">
-                This test simulates the real IELTS Speaking interview. Your computer acts as the
-                certified examiner, asking questions aloud and recording your responses with live
-                transcription.
+              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-lg mx-auto">
+                This test simulates the real IELTS Speaking interview. Your computer acts as the certified examiner, asking questions aloud and recording your responses with live transcription.
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full text-left text-xs">
-              <div className="p-4 bg-neutral-900 border border-neutral-800 rounded-xl space-y-1">
-                <span className="font-bold text-blue-400 block uppercase">Part 1 (4-5 mins)</span>
-                <p className="text-neutral-300">Introduction & familiar everyday topics.</p>
+              <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-1">
+                <span className="font-bold text-blue-400 block uppercase">Part 1 (4–5 mins)</span>
+                <p className="text-slate-300">Introduction &amp; familiar everyday topics.</p>
               </div>
-              <div className="p-4 bg-neutral-900 border border-neutral-800 rounded-xl space-y-1">
-                <span className="font-bold text-blue-400 block uppercase">Part 2 (3-4 mins)</span>
-                <p className="text-neutral-300">Cue card talk with 1 min prep & 2 mins speaking.</p>
+              <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-1">
+                <span className="font-bold text-blue-400 block uppercase">Part 2 (3–4 mins)</span>
+                <p className="text-slate-300">Cue card talk with 1 min prep &amp; 2 mins speaking.</p>
               </div>
-              <div className="p-4 bg-neutral-900 border border-neutral-800 rounded-xl space-y-1">
-                <span className="font-bold text-blue-400 block uppercase">Part 3 (4-5 mins)</span>
-                <p className="text-neutral-300">Two-way in-depth analytical discussion.</p>
+              <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-1">
+                <span className="font-bold text-blue-400 block uppercase">Part 3 (4–5 mins)</span>
+                <p className="text-slate-300">Two-way in-depth analytical discussion.</p>
               </div>
             </div>
 
-            <div className="pt-4 w-full max-w-xs">
+            <div className="pt-2 w-full max-w-xs">
               <button
                 type="button"
                 onClick={handleStartExam}
-                className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer text-sm"
+                className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer text-sm"
               >
                 <span>Start Speaking Exam</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
-              <p className="text-[11px] text-neutral-500 mt-2">
-                Make sure you are in a quiet room and your microphone is plugged in.
+              <p className="text-[11px] text-slate-500 mt-2">
+                Make sure you are in a quiet room and your microphone is enabled.
               </p>
             </div>
           </div>
@@ -636,31 +618,30 @@ function SpeakingExamContent() {
         {phase === 'PART_1' && (
           <div className="flex-1 flex flex-col justify-between space-y-6">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-blue-400">
-                  Part 1: Introduction & Interview &bull; Question {currentQIndex + 1} of{' '}
+                  Part 1: Interview &bull; Question {currentQIndex + 1} of{' '}
                   {content.part1.questions.length}
                 </span>
-                <span className="text-xs text-neutral-400">Topic: {content.part1.topic}</span>
+                <span className="text-xs text-slate-400">Topic: {content.part1.topic}</span>
               </div>
 
-              {/* Examiner Question Card */}
-              <div className="p-6 md:p-8 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-xl space-y-4">
-                <div className="flex items-start gap-4">
+              <div className="p-5 sm:p-8 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl space-y-4">
+                <div className="flex items-start gap-3 sm:gap-4">
                   <div className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-400 flex items-center justify-center shrink-0 mt-1">
                     <Volume2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-xs font-semibold text-neutral-400 block mb-1">
+                    <span className="text-xs font-semibold text-slate-400 block mb-1">
                       Examiner:
                     </span>
-                    <h2 className="text-xl md:text-2xl font-bold text-white leading-relaxed">
+                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white leading-relaxed">
                       &quot;{content.part1.questions[currentQIndex]}&quot;
                     </h2>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 pt-2">
+                <div className="flex items-center gap-2 pt-1">
                   <button
                     type="button"
                     onClick={() => speakText(content.part1.questions[currentQIndex])}
@@ -672,9 +653,8 @@ function SpeakingExamContent() {
                 </div>
               </div>
 
-              {/* Live Transcript Area */}
-              <div className="p-5 bg-neutral-900/60 border border-neutral-800 rounded-xl space-y-2 min-h-[160px] flex flex-col">
-                <div className="flex items-center justify-between text-xs text-neutral-400 pb-2 border-b border-neutral-800/80">
+              <div className="p-4 sm:p-5 bg-slate-900/60 border border-slate-800 rounded-xl space-y-2 min-h-[160px] flex flex-col">
+                <div className="flex items-center justify-between text-xs text-slate-400 pb-2 border-b border-slate-800/80">
                   <span className="font-semibold uppercase tracking-wider">Candidate Live Transcript</span>
                   {isMicActive && (
                     <span className="text-emerald-400 flex items-center gap-1">
@@ -684,39 +664,38 @@ function SpeakingExamContent() {
                   )}
                 </div>
 
-                <div className="flex-1 text-sm md:text-base text-neutral-200 leading-relaxed font-sans select-text pt-2">
+                <div className="flex-1 text-sm sm:text-base text-slate-200 leading-relaxed font-sans select-text pt-2">
                   {!isSpeechSupported ? (
                     <textarea
                       rows={4}
                       value={currentResponse}
                       onChange={(e) => setCurrentResponse(e.target.value)}
-                      placeholder="Speech recognition is unavailable in this browser. Type or paste your spoken response here so the AI Examiner can grade it..."
-                      className="w-full rounded-lg bg-neutral-950 border border-neutral-700 p-3 text-sm text-white focus:border-blue-500 focus:outline-none"
+                      placeholder="Speech recognition is unavailable in this browser. Type your spoken response here so the AI Examiner can grade it..."
+                      className="w-full rounded-lg bg-slate-950 border border-slate-700 p-3 text-sm text-white focus:border-blue-500 focus:outline-none"
                     />
                   ) : currentResponse ? (
                     <span>{currentResponse}</span>
                   ) : (
-                    <span className="text-neutral-500 italic">
+                    <span className="text-slate-500 italic">
                       Start speaking your answer... Live transcription will appear here.
                     </span>
                   )}
                   {interimTranscript && (
-                    <span className="text-neutral-400 italic"> {interimTranscript}</span>
+                    <span className="text-slate-400 italic"> {interimTranscript}</span>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Bottom Actions */}
-            <div className="flex items-center justify-between pt-4 border-t border-neutral-800">
-              <span className="text-xs text-neutral-400">
-                Aim for 3-4 full sentences per question.
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-800">
+              <span className="text-xs text-slate-400">
+                Aim for 3–4 full sentences per question.
               </span>
 
               <button
                 type="button"
                 onClick={handleNextPart1Question}
-                className="px-6 py-2.5 rounded-xl font-bold text-xs md:text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md flex items-center gap-2 transition-colors cursor-pointer"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-blue-600 hover:bg-blue-500 text-white shadow-md flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
                 <span>
                   {currentQIndex + 1 < content.part1.questions.length
@@ -743,20 +722,19 @@ function SpeakingExamContent() {
                 </div>
               </div>
 
-              {/* Cue Card */}
-              <div className="p-6 md:p-8 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-xl space-y-4">
-                <div className="border-b border-neutral-800 pb-3">
-                  <span className="text-xs uppercase tracking-wider text-neutral-400 font-bold block mb-1">
+              <div className="p-5 sm:p-8 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl space-y-4">
+                <div className="border-b border-slate-800 pb-3">
+                  <span className="text-xs uppercase tracking-wider text-slate-400 font-bold block mb-1">
                     Candidate Task Card
                   </span>
-                  <h2 className="text-xl md:text-2xl font-black text-white">
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-black text-white">
                     {content.part2.cueCard.title}
                   </h2>
                 </div>
 
-                <div className="space-y-2 text-sm text-neutral-300">
-                  <p className="font-semibold text-neutral-200">You should say:</p>
-                  <ul className="list-disc list-inside space-y-1.5 pl-2 text-neutral-300">
+                <div className="space-y-2 text-sm text-slate-300">
+                  <p className="font-semibold text-slate-200">You should say:</p>
+                  <ul className="list-disc list-inside space-y-1.5 pl-2 text-slate-300">
                     {content.part2.cueCard.prompts.map((p, idx) => (
                       <li key={idx}>{p}</li>
                     ))}
@@ -764,32 +742,31 @@ function SpeakingExamContent() {
                 </div>
               </div>
 
-              {/* Scratchpad for notes */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs text-neutral-400">
+                <div className="flex items-center justify-between text-xs text-slate-400">
                   <span className="font-semibold uppercase tracking-wider">
                     Candidate Scratchpad (Rough Notes)
                   </span>
-                  <span>Microphone is currently OFF</span>
+                  <span>Microphone is OFF</span>
                 </div>
                 <textarea
                   value={prepNotes}
                   onChange={(e) => setPrepNotes(e.target.value)}
                   placeholder="Type rough keywords and bullet points here to structure your 2-minute response..."
-                  className="w-full h-32 bg-neutral-900 text-neutral-100 rounded-xl p-4 text-sm border border-neutral-800 focus:border-blue-500 focus:outline-none resize-none font-mono"
+                  className="w-full h-32 bg-slate-900 text-slate-100 rounded-xl p-4 text-sm border border-slate-800 focus:border-blue-500 focus:outline-none resize-none font-mono"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-4 border-t border-neutral-800">
-              <span className="text-xs text-neutral-400">
-                You will speak continuously for 1 to 2 minutes when the timer ends.
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-800">
+              <span className="text-xs text-slate-400">
+                You will speak continuously for up to 2 minutes when the timer ends.
               </span>
 
               <button
                 type="button"
                 onClick={handleStartPart2Speaking}
-                className="px-6 py-2.5 rounded-xl font-bold text-xs md:text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md flex items-center gap-2 transition-colors cursor-pointer"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-blue-600 hover:bg-blue-500 text-white shadow-md flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
                 <span>I&apos;m Ready &bull; Start Speaking Now</span>
                 <ChevronRight className="w-4 h-4" />
@@ -815,35 +792,33 @@ function SpeakingExamContent() {
                 </div>
               </div>
 
-              {/* Cue Card & Notes Split */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-5 bg-neutral-900 border border-neutral-800 rounded-xl space-y-3">
-                  <span className="text-xs uppercase tracking-wider text-neutral-400 font-bold block">
+                <div className="p-5 bg-slate-900 border border-slate-800 rounded-xl space-y-3">
+                  <span className="text-xs uppercase tracking-wider text-slate-400 font-bold block">
                     Cue Card Reference
                   </span>
                   <h3 className="text-base font-bold text-white">
                     {content.part2.cueCard.title}
                   </h3>
-                  <ul className="list-disc list-inside space-y-1 text-xs text-neutral-300 pl-1">
+                  <ul className="list-disc list-inside space-y-1 text-xs text-slate-300 pl-1">
                     {content.part2.cueCard.prompts.map((p, idx) => (
                       <li key={idx}>{p}</li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="p-5 bg-neutral-900 border border-neutral-800 rounded-xl space-y-2">
-                  <span className="text-xs uppercase tracking-wider text-neutral-400 font-bold block">
+                <div className="p-5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+                  <span className="text-xs uppercase tracking-wider text-slate-400 font-bold block">
                     Your Prepared Notes
                   </span>
-                  <div className="text-xs font-mono text-neutral-300 whitespace-pre-wrap max-h-32 overflow-y-auto">
-                    {prepNotes ? prepNotes : <span className="text-neutral-500 italic">No notes written.</span>}
+                  <div className="text-xs font-mono text-slate-300 whitespace-pre-wrap max-h-32 overflow-y-auto">
+                    {prepNotes ? prepNotes : <span className="text-slate-500 italic">No notes written.</span>}
                   </div>
                 </div>
               </div>
 
-              {/* Live Transcript Area */}
-              <div className="p-5 bg-neutral-900/60 border border-neutral-800 rounded-xl space-y-2 min-h-[160px] flex flex-col">
-                <div className="flex items-center justify-between text-xs text-neutral-400 pb-2 border-b border-neutral-800/80">
+              <div className="p-4 sm:p-5 bg-slate-900/60 border border-slate-800 rounded-xl space-y-2 min-h-[160px] flex flex-col">
+                <div className="flex items-center justify-between text-xs text-slate-400 pb-2 border-b border-slate-800/80">
                   <span className="font-semibold uppercase tracking-wider">Candidate Live Transcript</span>
                   {isMicActive && (
                     <span className="text-red-400 flex items-center gap-1.5 font-bold">
@@ -853,30 +828,38 @@ function SpeakingExamContent() {
                   )}
                 </div>
 
-                <div className="flex-1 text-sm md:text-base text-neutral-200 leading-relaxed font-sans select-text pt-2">
-                  {currentResponse ? (
+                <div className="flex-1 text-sm sm:text-base text-slate-200 leading-relaxed font-sans select-text pt-2">
+                  {!isSpeechSupported ? (
+                    <textarea
+                      rows={4}
+                      value={currentResponse}
+                      onChange={(e) => setCurrentResponse(e.target.value)}
+                      placeholder="Type your Part 2 response here..."
+                      className="w-full rounded-lg bg-slate-950 border border-slate-700 p-3 text-sm text-white focus:border-blue-500 focus:outline-none"
+                    />
+                  ) : currentResponse ? (
                     <span>{currentResponse}</span>
                   ) : (
-                    <span className="text-neutral-500 italic">
+                    <span className="text-slate-500 italic">
                       Speak clearly into your microphone... Your 2-minute talk is being recorded.
                     </span>
                   )}
                   {interimTranscript && (
-                    <span className="text-neutral-400 italic"> {interimTranscript}</span>
+                    <span className="text-slate-400 italic"> {interimTranscript}</span>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-4 border-t border-neutral-800">
-              <span className="text-xs text-neutral-400">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-800">
+              <span className="text-xs text-slate-400">
                 Recording auto-stops when the 2-minute timer reaches 00:00.
               </span>
 
               <button
                 type="button"
                 onClick={handleFinishPart2}
-                className="px-6 py-2.5 rounded-xl font-bold text-xs md:text-sm bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700 shadow-md flex items-center gap-2 transition-colors cursor-pointer"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 shadow-md flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
                 <span>Done Speaking (Advance to Part 3)</span>
                 <ChevronRight className="w-4 h-4" />
@@ -889,31 +872,30 @@ function SpeakingExamContent() {
         {phase === 'PART_3' && (
           <div className="flex-1 flex flex-col justify-between space-y-6">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-blue-400">
-                  Part 3: Two-way Discussion &bull; Question {currentQIndex + 1} of{' '}
+                  Part 3: Discussion &bull; Question {currentQIndex + 1} of{' '}
                   {content.part3.questions.length}
                 </span>
-                <span className="text-xs text-neutral-400">Topic: {content.part3.topic}</span>
+                <span className="text-xs text-slate-400">Topic: {content.part3.topic}</span>
               </div>
 
-              {/* Examiner Question Card */}
-              <div className="p-6 md:p-8 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-xl space-y-4">
-                <div className="flex items-start gap-4">
+              <div className="p-5 sm:p-8 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl space-y-4">
+                <div className="flex items-start gap-3 sm:gap-4">
                   <div className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-400 flex items-center justify-center shrink-0 mt-1">
                     <Volume2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-xs font-semibold text-neutral-400 block mb-1">
+                    <span className="text-xs font-semibold text-slate-400 block mb-1">
                       Examiner:
                     </span>
-                    <h2 className="text-xl md:text-2xl font-bold text-white leading-relaxed">
+                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white leading-relaxed">
                       &quot;{content.part3.questions[currentQIndex]}&quot;
                     </h2>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 pt-2">
+                <div className="flex items-center gap-2 pt-1">
                   <button
                     type="button"
                     onClick={() => speakText(content.part3.questions[currentQIndex])}
@@ -925,9 +907,8 @@ function SpeakingExamContent() {
                 </div>
               </div>
 
-              {/* Live Transcript Area */}
-              <div className="p-5 bg-neutral-900/60 border border-neutral-800 rounded-xl space-y-2 min-h-[160px] flex flex-col">
-                <div className="flex items-center justify-between text-xs text-neutral-400 pb-2 border-b border-neutral-800/80">
+              <div className="p-4 sm:p-5 bg-slate-900/60 border border-slate-800 rounded-xl space-y-2 min-h-[160px] flex flex-col">
+                <div className="flex items-center justify-between text-xs text-slate-400 pb-2 border-b border-slate-800/80">
                   <span className="font-semibold uppercase tracking-wider">Candidate Live Transcript</span>
                   {isMicActive && (
                     <span className="text-emerald-400 flex items-center gap-1">
@@ -937,30 +918,38 @@ function SpeakingExamContent() {
                   )}
                 </div>
 
-                <div className="flex-1 text-sm md:text-base text-neutral-200 leading-relaxed font-sans select-text pt-2">
-                  {currentResponse ? (
+                <div className="flex-1 text-sm sm:text-base text-slate-200 leading-relaxed font-sans select-text pt-2">
+                  {!isSpeechSupported ? (
+                    <textarea
+                      rows={4}
+                      value={currentResponse}
+                      onChange={(e) => setCurrentResponse(e.target.value)}
+                      placeholder="Type your Part 3 response here..."
+                      className="w-full rounded-lg bg-slate-950 border border-slate-700 p-3 text-sm text-white focus:border-blue-500 focus:outline-none"
+                    />
+                  ) : currentResponse ? (
                     <span>{currentResponse}</span>
                   ) : (
-                    <span className="text-neutral-500 italic">
+                    <span className="text-slate-500 italic">
                       Start speaking your analytical answer...
                     </span>
                   )}
                   {interimTranscript && (
-                    <span className="text-neutral-400 italic"> {interimTranscript}</span>
+                    <span className="text-slate-400 italic"> {interimTranscript}</span>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-4 border-t border-neutral-800">
-              <span className="text-xs text-neutral-400">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-800">
+              <span className="text-xs text-slate-400">
                 Provide reasoned arguments and illustrative examples.
               </span>
 
               <button
                 type="button"
                 onClick={handleNextPart3Question}
-                className="px-6 py-2.5 rounded-xl font-bold text-xs md:text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md flex items-center gap-2 transition-colors cursor-pointer"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-blue-600 hover:bg-blue-500 text-white shadow-md flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
                 <span>
                   {currentQIndex + 1 < content.part3.questions.length
@@ -977,20 +966,18 @@ function SpeakingExamContent() {
         {phase === 'COMPLETED' && (
           <div className="flex-1 space-y-8 select-text pb-12">
             {!evaluation ? (
-              /* Review Transcript Summary before AI Grading */
               <div className="space-y-6">
-                <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 md:p-8 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-8 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
                   <div className="space-y-2 text-center sm:text-left">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-neutral-800 text-emerald-400 border border-neutral-700">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-slate-800 text-emerald-400 border border-slate-700">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       Interview Completed
                     </div>
-                    <h1 className="text-2xl md:text-3xl font-extrabold text-white">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white">
                       Full Speaking Transcript Summary
                     </h1>
-                    <p className="text-xs md:text-sm text-neutral-400">
-                      Review your transcribed spoken responses and listen to audio recordings below
-                      before submitting for certified AI examiner evaluation.
+                    <p className="text-xs sm:text-sm text-slate-400">
+                      Review your transcribed spoken responses and listen to audio recordings below before submitting for certified AI examiner evaluation.
                     </p>
                   </div>
 
@@ -998,12 +985,12 @@ function SpeakingExamContent() {
                     type="button"
                     disabled={isGrading}
                     onClick={handleGetAIFeedback}
-                    className="px-6 py-3.5 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-neutral-800 disabled:text-neutral-500 text-white shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0"
+                    className="w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-500 text-white shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0"
                   >
                     {isGrading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Evaluating Fluency & Band...</span>
+                        <span>Evaluating Fluency &amp; Band...</span>
                       </>
                     ) : (
                       <>
@@ -1014,14 +1001,13 @@ function SpeakingExamContent() {
                   </button>
                 </div>
 
-                {/* Segments List with Audio Playback */}
                 <div className="space-y-4">
                   {segments.map((seg, idx) => (
                     <div
                       key={idx}
-                      className="p-5 bg-neutral-900 border border-neutral-800 rounded-xl space-y-3"
+                      className="p-5 bg-slate-900 border border-slate-800 rounded-xl space-y-3"
                     >
-                      <div className="flex items-center justify-between text-xs text-neutral-400">
+                      <div className="flex items-center justify-between text-xs text-slate-400">
                         <span className="font-bold text-blue-400 uppercase tracking-wider">
                           {seg.part}
                         </span>
@@ -1032,9 +1018,9 @@ function SpeakingExamContent() {
                         Q: {seg.question}
                       </div>
 
-                      <div className="p-3.5 bg-neutral-950/80 rounded-lg border border-neutral-800/80 text-xs md:text-sm text-neutral-300 leading-relaxed">
+                      <div className="p-3.5 bg-slate-950/80 rounded-lg border border-slate-800/80 text-xs sm:text-sm text-slate-300 leading-relaxed">
                         {seg.response || (
-                          <span className="text-neutral-500 italic">(No response transcribed)</span>
+                          <span className="text-slate-500 italic">(No response transcribed)</span>
                         )}
                       </div>
 
@@ -1052,19 +1038,17 @@ function SpeakingExamContent() {
                 </div>
               </div>
             ) : (
-              /* Display Rich AI Evaluation Report Card */
               <div className="space-y-6">
-                {/* Hero Overall Band */}
-                <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 md:p-8 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-8 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
                   <div className="space-y-2 text-center md:text-left">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-neutral-800 text-blue-400 border border-neutral-700">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-slate-800 text-blue-400 border border-slate-700">
                       <Award className="w-3.5 h-3.5" />
                       Official IELTS Speaking Band Assessment
                     </div>
-                    <h1 className="text-2xl md:text-3xl font-extrabold text-white">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white">
                       Examiner Speaking Evaluation
                     </h1>
-                    <p className="text-xs md:text-sm text-neutral-400">
+                    <p className="text-xs sm:text-sm text-slate-400">
                       Total Words Spoken: <strong className="text-white">{evaluation.wordCount}</strong> &bull; Filler
                       Words Detected:{' '}
                       <strong className="text-amber-400">
@@ -1075,7 +1059,7 @@ function SpeakingExamContent() {
 
                   <div className="flex flex-col items-center justify-center">
                     <div
-                      className={`w-28 h-28 rounded-full border-4 flex flex-col items-center justify-center shadow-lg transition-transform ${
+                      className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 flex flex-col items-center justify-center shadow-lg ${
                         evaluation.overallBand >= 7.0
                           ? 'border-emerald-500 bg-emerald-950/40 text-emerald-400'
                           : evaluation.overallBand >= 6.0
@@ -1083,79 +1067,77 @@ function SpeakingExamContent() {
                           : 'border-rose-500 bg-rose-950/40 text-rose-400'
                       }`}
                     >
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                         Band
                       </span>
-                      <span className="text-4xl font-black">
+                      <span className="text-3xl sm:text-4xl font-black">
                         {evaluation.overallBand.toFixed(1)}
                       </span>
                     </div>
-                    <span className="text-xs text-neutral-400 mt-2 font-medium">Overall Score</span>
+                    <span className="text-xs text-slate-400 mt-2 font-medium">Overall Score</span>
                   </div>
                 </div>
 
-                {/* 4 Official Criteria Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-2">
-                    <div className="flex items-between justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
-                        Fluency & Coherence
+                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                        Fluency &amp; Coherence
                       </span>
                       <span className="text-lg font-black text-blue-400">
                         {evaluation.fluencyCoherence?.band?.toFixed(1) || 'N/A'}
                       </span>
                     </div>
-                    <p className="text-xs text-neutral-300 leading-relaxed">
+                    <p className="text-xs text-slate-300 leading-relaxed">
                       {evaluation.fluencyCoherence?.feedback}
                     </p>
                   </div>
 
-                  <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-2">
-                    <div className="flex items-between justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                         Lexical Resource
                       </span>
                       <span className="text-lg font-black text-blue-400">
                         {evaluation.lexicalResource?.band?.toFixed(1) || 'N/A'}
                       </span>
                     </div>
-                    <p className="text-xs text-neutral-300 leading-relaxed">
+                    <p className="text-xs text-slate-300 leading-relaxed">
                       {evaluation.lexicalResource?.feedback}
                     </p>
                   </div>
 
-                  <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-2">
-                    <div className="flex items-between justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                         Grammatical Range
                       </span>
                       <span className="text-lg font-black text-blue-400">
                         {evaluation.grammaticalRange?.band?.toFixed(1) || 'N/A'}
                       </span>
                     </div>
-                    <p className="text-xs text-neutral-300 leading-relaxed">
+                    <p className="text-xs text-slate-300 leading-relaxed">
                       {evaluation.grammaticalRange?.feedback}
                     </p>
                   </div>
 
-                  <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-2">
-                    <div className="flex items-between justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                         Pronunciation
                       </span>
                       <span className="text-lg font-black text-blue-400">
                         {evaluation.pronunciation?.band?.toFixed(1) || 'N/A'}
                       </span>
                     </div>
-                    <p className="text-xs text-neutral-300 leading-relaxed">
+                    <p className="text-xs text-slate-300 leading-relaxed">
                       {evaluation.pronunciation?.feedback}
                     </p>
                   </div>
                 </div>
 
-                {/* Filler Words Detected */}
                 {evaluation.fillerWordsDetected && evaluation.fillerWordsDetected.length > 0 && (
-                  <div className="p-5 bg-neutral-900 border border-neutral-800 rounded-xl space-y-3">
+                  <div className="p-5 bg-slate-900 border border-slate-800 rounded-xl space-y-3">
                     <h3 className="text-sm font-bold uppercase tracking-wider text-amber-400 flex items-center gap-2">
                       <AlertCircle className="w-4 h-4" />
                       Filler Words Detected &bull; Practice Pausing Silently
@@ -1173,22 +1155,20 @@ function SpeakingExamContent() {
                   </div>
                 )}
 
-                {/* Model Answer Excerpt */}
                 {evaluation.modelAnswerExcerpt && (
-                  <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-3">
+                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 sm:p-6 space-y-3">
                     <h3 className="text-base font-bold text-white flex items-center gap-2">
                       <BookOpen className="w-5 h-5 text-blue-400" />
                       Examiner&apos;s Band 8.5+ Spoken Model Excerpt
                     </h3>
-                    <div className="p-4 bg-neutral-950/80 rounded-lg border border-neutral-800 text-neutral-300 text-sm leading-relaxed whitespace-pre-wrap font-serif">
+                    <div className="p-4 bg-slate-950/80 rounded-lg border border-slate-800 text-slate-300 text-sm leading-relaxed whitespace-pre-wrap font-serif">
                       {evaluation.modelAnswerExcerpt}
                     </div>
                   </div>
                 )}
 
-                {/* Actionable Next Steps */}
                 {evaluation.actionableNextSteps && evaluation.actionableNextSteps.length > 0 && (
-                  <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-4">
+                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 sm:p-6 space-y-4">
                     <h3 className="text-base font-bold text-white flex items-center gap-2">
                       <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                       Actionable Steps to Reach Your Target Speaking Band
@@ -1197,7 +1177,7 @@ function SpeakingExamContent() {
                       {evaluation.actionableNextSteps.map((step, idx) => (
                         <div
                           key={idx}
-                          className="p-3 bg-neutral-950/70 rounded-lg border border-neutral-800/60 flex items-start gap-3 text-xs md:text-sm text-neutral-300"
+                          className="p-3 bg-slate-950/70 rounded-lg border border-slate-800/60 flex items-start gap-3 text-xs sm:text-sm text-slate-300"
                         >
                           <span className="w-5 h-5 rounded-full bg-blue-950 border border-blue-600/40 text-blue-400 flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold">
                             {idx + 1}
@@ -1209,25 +1189,24 @@ function SpeakingExamContent() {
                   </div>
                 )}
 
-                {/* Footer Navigation */}
-                <div className="pt-4 flex flex-wrap items-center justify-between gap-4 border-t border-neutral-800">
+                <div className="pt-4 flex flex-wrap items-center justify-between gap-4 border-t border-slate-800">
                   <button
                     type="button"
                     onClick={() => {
                       setEvaluation(null);
                       setPhase('INTRO');
                     }}
-                    className="px-5 py-2.5 rounded-xl text-xs md:text-sm font-semibold bg-neutral-800 hover:bg-neutral-700 text-white transition-colors"
+                    className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-colors"
                   >
                     Practice Another Topic
                   </button>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     {attemptId && (
                       <button
                         type="button"
                         onClick={() => router.push(`/exam/${testId}/results/${attemptId}`)}
-                        className="px-5 py-2.5 rounded-xl text-xs md:text-sm font-semibold bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-blue-400 hover:text-blue-300 flex items-center gap-2 transition-colors"
+                        className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-blue-400 hover:text-blue-300 flex items-center gap-2 transition-colors"
                       >
                         View Official Report
                         <ExternalLink className="w-4 h-4" />
@@ -1237,7 +1216,7 @@ function SpeakingExamContent() {
                     <button
                       type="button"
                       onClick={() => router.push('/dashboard')}
-                      className="px-6 py-2.5 rounded-xl text-xs md:text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+                      className="px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-colors"
                     >
                       Return to Dashboard
                     </button>
@@ -1252,24 +1231,24 @@ function SpeakingExamContent() {
       {/* UPGRADE MODAL (403 RATE LIMIT) */}
       {showUpgradeModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl max-w-md w-full p-6 text-white shadow-2xl space-y-5">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 text-white shadow-2xl space-y-5">
             <div className="w-12 h-12 rounded-2xl bg-amber-950/80 border border-amber-500/40 text-amber-400 flex items-center justify-center mx-auto">
               <Lock className="w-6 h-6" />
             </div>
 
             <div className="text-center space-y-2">
               <h3 className="text-xl font-bold text-white">AI Grading Limit Reached</h3>
-              <p className="text-sm text-neutral-300 leading-relaxed">{upgradeMessage}</p>
+              <p className="text-sm text-slate-300 leading-relaxed">{upgradeMessage}</p>
             </div>
 
-            <div className="p-4 bg-neutral-950/80 rounded-xl border border-neutral-800 text-xs space-y-2 text-neutral-300">
+            <div className="p-4 bg-slate-950/80 rounded-xl border border-slate-800 text-xs space-y-2 text-slate-300">
               <span className="font-bold text-white block uppercase tracking-wider">
                 Unlock Pro Features:
               </span>
               <ul className="space-y-1.5 list-disc list-inside">
-                <li>Unlimited AI Speaking & Writing evaluations</li>
-                <li>Live pronunciation & fluency feedback</li>
-                <li>Instant bKash / Nagad automated checkout</li>
+                <li>Higher daily AI Speaking &amp; Writing evaluations</li>
+                <li>Live pronunciation &amp; fluency feedback</li>
+                <li>Direct bKash / Nagad checkout</li>
                 <li>Full mock tests and Cambridge Grader</li>
               </ul>
             </div>
@@ -1278,14 +1257,14 @@ function SpeakingExamContent() {
               <button
                 type="button"
                 onClick={() => setShowUpgradeModal(false)}
-                className="w-1/2 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-xl text-xs font-semibold transition-colors"
+                className="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-colors"
               >
                 Close
               </button>
               <button
                 type="button"
                 onClick={() => router.push('/pricing')}
-                className="w-1/2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-md"
+                className="w-1/2 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-md"
               >
                 Upgrade to Pro
                 <ArrowRight className="w-4 h-4" />
@@ -1302,7 +1281,7 @@ export default function SpeakingExamPage() {
   return (
     <React.Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-slate-900 text-white">
+        <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
           <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
         </div>
       }

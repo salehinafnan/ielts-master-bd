@@ -6,9 +6,6 @@ import {
   GraduationCap,
   CheckCircle2,
   AlertCircle,
-  TrendingUp,
-  School,
-  Globe,
   Loader2,
 } from 'lucide-react';
 
@@ -117,7 +114,6 @@ export default function UniversityMatcher() {
           setUserId(user.id);
         }
 
-        // 1. Fetch universities
         const { data: uniData } = await supabase
           .from('universities')
           .select('*')
@@ -128,7 +124,6 @@ export default function UniversityMatcher() {
 
         let targetId = list[0]?.id;
 
-        // Check if user has target_university_id saved in profiles
         if (user) {
           const { data: prof } = await supabase
             .from('profiles')
@@ -142,7 +137,6 @@ export default function UniversityMatcher() {
         }
         setSelectedUniId(targetId);
 
-        // 2. Fetch user's latest scores: average of the most recent 3 attempts per module_type
         if (user) {
           const { data: attempts } = await supabase
             .from('test_attempts')
@@ -176,7 +170,6 @@ export default function UniversityMatcher() {
             const wScore = calcAvg(grouped.writing);
             const sScore = calcAvg(grouped.speaking);
 
-            // Compute overall: average of tested modules rounded to IELTS band
             const valid = [lScore, rScore, wScore, sScore].filter((v): v is number => v !== null);
             const oScore =
               valid.length > 0
@@ -276,7 +269,7 @@ export default function UniversityMatcher() {
 
   if (loading) {
     return (
-      <div className="flex h-48 items-center justify-center rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex h-48 items-center justify-center rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
         <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
       </div>
     );
@@ -287,15 +280,15 @@ export default function UniversityMatcher() {
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
       {/* Top Header / University Selector */}
-      <div className="flex flex-col gap-4 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800">
+      <div className="flex flex-col gap-3 border-b border-slate-200 p-4 sm:p-5 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-950/70 dark:text-blue-400">
+          <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-950/70 dark:text-blue-400">
             <GraduationCap className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
               Target University Matcher
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -304,41 +297,39 @@ export default function UniversityMatcher() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <label htmlFor="university-select" className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            Select University:
+        <div className="flex flex-col xs:flex-row xs:items-center gap-2">
+          <label htmlFor="university-select" className="text-xs font-medium text-slate-500 dark:text-slate-400 shrink-0">
+            University:
           </label>
-          <div className="relative">
-            <select
-              id="university-select"
-              value={selectedUniId}
-              onChange={(e) => handleUniversityChange(e.target.value)}
-              className="h-10 rounded-lg border border-slate-300 bg-white px-3 py-1.5 pr-8 text-sm font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-            >
-              {universities.map((uni) => (
-                <option key={uni.id} value={uni.id}>
-                  {uni.name} ({uni.country})
-                </option>
-              ))}
-            </select>
-          </div>
+          <select
+            id="university-select"
+            value={selectedUniId}
+            onChange={(e) => handleUniversityChange(e.target.value)}
+            className="h-9 sm:h-10 w-full xs:w-auto rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-900 shadow-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+          >
+            {universities.map((uni) => (
+              <option key={uni.id} value={uni.id}>
+                {uni.name} ({uni.country})
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
       {/* Overall Verdict Banner */}
-      <div className="px-5 pt-4">
+      <div className="px-4 sm:px-5 pt-4">
         {unmetCount === 0 ? (
-          <div className="flex items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300">
-            <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
-            <div className="text-sm font-semibold">
+          <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300">
+            <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <div className="text-xs sm:text-sm font-semibold">
               You qualify! Your average scores satisfy all official minimum entry criteria for{' '}
               <span className="font-bold">{selectedUniversity.name}</span>.
             </div>
           </div>
         ) : (
-          <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300">
-            <AlertCircle className="h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
-            <div className="text-sm font-semibold">
+          <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300">
+            <AlertCircle className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
+            <div className="text-xs sm:text-sm font-semibold">
               {unmetCount} {unmetCount === 1 ? 'module needs' : 'modules need'} improvement to meet
               the entry threshold for <span className="font-bold">{selectedUniversity.name}</span>.
             </div>
@@ -347,62 +338,102 @@ export default function UniversityMatcher() {
       </div>
 
       {/* Comparison Rows */}
-      <div className="overflow-x-auto p-5">
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:text-slate-400">
-              <th className="pb-3 pl-2">Module</th>
-              <th className="pb-3 text-center">Your Score</th>
-              <th className="pb-3 text-center">Required</th>
-              <th className="pb-3 pl-4">Status & Gap Analysis</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-            {rows.map((row) => {
-              const scoreText =
-                row.userScore !== null ? Number(row.userScore).toFixed(1) : 'No tests';
-              return (
-                <tr key={row.key} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30">
-                  <td className="py-3.5 pl-2 font-semibold text-slate-900 dark:text-white">
+      <div className="p-4 sm:p-5">
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5 sm:hidden">
+          {rows.map((row) => {
+            const scoreText =
+              row.userScore !== null ? Number(row.userScore).toFixed(1) : 'No tests';
+            return (
+              <div
+                key={row.key}
+                className="rounded-xl border border-slate-200 dark:border-slate-800 p-3 flex items-center justify-between gap-2"
+              >
+                <div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white">
                     {row.label}
-                  </td>
-                  <td className="py-3.5 text-center">
-                    <span
-                      className={`inline-block rounded-md px-2.5 py-0.5 text-xs font-bold ${
-                        row.userScore === null
-                          ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-                          : row.isMet
-                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'
-                          : 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400'
-                      }`}
-                    >
-                      {scoreText}
-                    </span>
-                  </td>
-                  <td className="py-3.5 text-center font-bold text-slate-700 dark:text-slate-300">
-                    {row.required.toFixed(1)}
-                  </td>
-                  <td className="py-3.5 pl-4">
-                    {row.isMet ? (
-                      <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
-                        <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
-                        <span>You meet this requirement!</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5 text-xs font-medium text-red-600 dark:text-red-400">
-                        <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                        <span>
-                          You need +{row.gap.toFixed(1)} in {row.label} to qualify for{' '}
-                          {selectedUniversity.name}.
-                        </span>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    {row.isMet ? 'Requirement met' : `Need +${row.gap.toFixed(1)} band`}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span
+                    className={`inline-block rounded-md px-2 py-0.5 text-xs font-bold ${
+                      row.userScore === null
+                        ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                        : row.isMet
+                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'
+                        : 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400'
+                    }`}
+                  >
+                    {scoreText}
+                  </span>
+                  <div className="text-[10px] text-slate-400 mt-0.5">
+                    Min {row.required.toFixed(1)}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="hidden sm:block overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:text-slate-400">
+                <th className="pb-3 pl-2">Module</th>
+                <th className="pb-3 text-center">Your Score</th>
+                <th className="pb-3 text-center">Required</th>
+                <th className="pb-3 pl-4">Status &amp; Gap Analysis</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+              {rows.map((row) => {
+                const scoreText =
+                  row.userScore !== null ? Number(row.userScore).toFixed(1) : 'No tests';
+                return (
+                  <tr key={row.key} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30">
+                    <td className="py-3.5 pl-2 font-semibold text-slate-900 dark:text-white">
+                      {row.label}
+                    </td>
+                    <td className="py-3.5 text-center">
+                      <span
+                        className={`inline-block rounded-md px-2.5 py-0.5 text-xs font-bold ${
+                          row.userScore === null
+                            ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                            : row.isMet
+                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'
+                            : 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400'
+                        }`}
+                      >
+                        {scoreText}
+                      </span>
+                    </td>
+                    <td className="py-3.5 text-center font-bold text-slate-700 dark:text-slate-300">
+                      {row.required.toFixed(1)}
+                    </td>
+                    <td className="py-3.5 pl-4">
+                      {row.isMet ? (
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                          <CheckCircle2 className="h-4 w-4 shrink-0" />
+                          <span>You meet this requirement!</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-red-600 dark:text-red-400">
+                          <AlertCircle className="h-4 w-4 shrink-0" />
+                          <span>
+                            You need +{row.gap.toFixed(1)} in {row.label} to qualify for{' '}
+                            {selectedUniversity.name}.
+                          </span>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

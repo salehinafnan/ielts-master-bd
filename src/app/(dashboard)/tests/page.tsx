@@ -13,12 +13,16 @@ import {
   Lock,
   Unlock,
   Play,
-  ArrowRight,
   Sparkles,
   Clock,
   FileText,
   Loader2,
   CheckCircle2,
+  Monitor,
+  Smartphone,
+  Keyboard,
+  MousePointer2,
+  ArrowRight,
 } from 'lucide-react';
 
 interface MockTestItem {
@@ -101,8 +105,23 @@ export default function TestsCatalogPage() {
   const router = useRouter();
   const [tests, setTests] = useState<MockTestItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedModule, setSelectedModule] = useState<'all' | 'reading' | 'listening' | 'writing' | 'speaking'>('all');
+  const [selectedModule, setSelectedModule] = useState<
+    'all' | 'reading' | 'listening' | 'writing' | 'speaking'
+  >('all');
   const [isUserPro, setIsUserPro] = useState<boolean>(false);
+  const [isMobileDevice, setIsMobileDevice] = useState<boolean>(false);
+  const [pendingMobileTest, setPendingMobileTest] = useState<MockTestItem | null>(null);
+
+  useEffect(() => {
+    const checkDevice = () => {
+      const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+      const isTouch = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+      setIsMobileDevice(isTouch || window.innerWidth < 1024);
+    };
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    return () => window.removeEventListener('resize', checkDevice);
+  }, []);
 
   useEffect(() => {
     async function loadTestsAndUser() {
@@ -113,7 +132,6 @@ export default function TestsCatalogPage() {
           data: { user },
         } = await supabase.auth.getUser();
 
-        // Check user subscription tier
         if (user) {
           const { data: profile } = await supabase
             .from('profiles')
@@ -124,7 +142,6 @@ export default function TestsCatalogPage() {
           setIsUserPro(isSubscriptionActive(profile));
         }
 
-        // Fetch all full_mock tests from public.tests
         const { data: testsData, error } = await supabase
           .from('tests')
           .select('id, title, test_category, module_type, is_premium, audio_url, created_at')
@@ -161,11 +178,17 @@ export default function TestsCatalogPage() {
       router.push('/pricing');
       return;
     }
+
+    if (isMobileDevice) {
+      setPendingMobileTest(test);
+      return;
+    }
+
     router.push(`/exam/${test.id}/${test.module_type}`);
   };
 
   return (
-    <div className="space-y-8 py-2">
+    <div className="space-y-6 sm:space-y-8 py-2">
       {/* Catalog Header Banner */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-6 dark:border-slate-800">
         <div>
@@ -184,16 +207,26 @@ export default function TestsCatalogPage() {
         {!isUserPro && (
           <Link
             href="/pricing"
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:from-blue-700 hover:to-indigo-700 transition-all w-fit"
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-blue-500 transition-all w-fit"
           >
             <Sparkles className="h-4 w-4" />
-            Upgrade to Pro for Unlimited Tests
+            Upgrade to Pro
           </Link>
         )}
       </div>
 
+      {/* PC Advisory Notice on Mobile / Tablet */}
+      {isMobileDevice && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/90 p-4 dark:border-amber-900/50 dark:bg-amber-950/30 flex items-start gap-3">
+          <Monitor className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
+            <span className="font-bold">Official CD-IELTS Exam Advice:</span> Since your real IELTS exam is conducted on a desktop computer at the test centre, we recommend taking full mock tests on a <strong>PC with Google Chrome, a physical keyboard, and a mouse</strong> for the proper exam experience.
+          </div>
+        </div>
+      )}
+
       {/* Module Filter Tabs */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
         {(
           [
             { id: 'all', label: 'All Modules' },
@@ -208,9 +241,9 @@ export default function TestsCatalogPage() {
             <button
               key={tab.id}
               onClick={() => setSelectedModule(tab.id)}
-              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+              className={`rounded-xl px-4 py-2 text-xs font-bold whitespace-nowrap transition-all ${
                 isActive
-                  ? 'bg-slate-900 text-white shadow-sm dark:bg-white dark:text-slate-900'
+                  ? 'bg-slate-900 text-white shadow-xs dark:bg-white dark:text-slate-900'
                   : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700'
               }`}
             >
@@ -236,7 +269,7 @@ export default function TestsCatalogPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {filteredTests.map((test) => {
             const config = MODULE_CONFIG[test.module_type] || MODULE_CONFIG.reading;
             const ModuleIcon = config.icon;
@@ -245,10 +278,9 @@ export default function TestsCatalogPage() {
             return (
               <div
                 key={test.id}
-                className="group relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-blue-400 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500"
+                className="group relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-all hover:border-blue-400 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500"
               >
                 <div>
-                  {/* Top Badges */}
                   <div className="flex items-center justify-between gap-2">
                     <span
                       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${config.badge}`}
@@ -274,12 +306,10 @@ export default function TestsCatalogPage() {
                     )}
                   </div>
 
-                  {/* Title */}
                   <h3 className="mt-4 text-base font-bold text-slate-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">
                     {test.title}
                   </h3>
 
-                  {/* Test Details */}
                   <div className="mt-4 space-y-2 text-xs text-slate-500 dark:text-slate-400">
                     <div className="flex items-center gap-2">
                       <Clock className="h-3.5 w-3.5 text-slate-400" />
@@ -292,7 +322,6 @@ export default function TestsCatalogPage() {
                   </div>
                 </div>
 
-                {/* Bottom Action Button */}
                 <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
                   {isLocked ? (
                     <button
@@ -305,7 +334,7 @@ export default function TestsCatalogPage() {
                   ) : (
                     <button
                       onClick={() => handleStartExam(test)}
-                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-blue-700 transition-colors"
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-blue-500 transition-colors"
                     >
                       <Play className="h-3.5 w-3.5 fill-current" />
                       <span>Start Mock Exam</span>
@@ -315,6 +344,66 @@ export default function TestsCatalogPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Pre-Launch Mobile Confirmation Modal */}
+      {pendingMobileTest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900 space-y-5">
+            <div className="flex items-center justify-between">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                <Monitor className="h-3.5 w-3.5" />
+                CD-IELTS Desktop Recommendation
+              </span>
+              <div className="flex items-center gap-1 text-slate-400">
+                <Smartphone className="h-4 w-4 text-rose-500" />
+                <ArrowRight className="h-3.5 w-3.5" />
+                <Monitor className="h-4 w-4 text-emerald-500" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                Taking a CD-IELTS Test on Mobile?
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                Since your official IELTS exam is conducted on a computer at the test centre, we strongly recommend using a <strong>PC with Google Chrome, a full keyboard, and a mouse</strong> to get the full, realistic exam experience.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5 space-y-2 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-300">
+              <div className="flex items-center gap-2">
+                <Keyboard className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                <span>Practice real typing speed &amp; keyboard navigation</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <MousePointer2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>Use side-by-side split screen &amp; right-click highlighting</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={() => setPendingMobileTest(null)}
+                className="w-full sm:w-1/2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const target = pendingMobileTest;
+                  setPendingMobileTest(null);
+                  router.push(`/exam/${target.id}/${target.module_type}`);
+                }}
+                className="w-full sm:w-1/2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-blue-500 shadow-xs"
+              >
+                Continue on Mobile
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

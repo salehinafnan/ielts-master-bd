@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { EyeOff, AlertTriangle, CheckCircle2, ListChecks, Flag } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { EyeOff, AlertTriangle, CheckCircle2, ListChecks, Flag, Clock, ArrowLeft } from 'lucide-react';
 import { useExamStore } from '@/store/useExamStore';
 
 interface InsperaHeaderProps {
@@ -17,6 +18,7 @@ export function InsperaHeader({
   onSubmit,
   onNavigate,
 }: InsperaHeaderProps) {
+  const router = useRouter();
   const remainingSeconds = useExamStore((state) => state.remainingSeconds);
   const activeTestId = useExamStore((state) => state.activeTestId);
   const tickTimer = useExamStore((state) => state.tickTimer);
@@ -63,67 +65,78 @@ export function InsperaHeader({
 
   return (
     <>
-      <header className="h-14 bg-neutral-900 border-b border-neutral-800 text-white px-4 md:px-6 flex items-center justify-between shrink-0 select-none z-30">
-        <div className="flex items-center gap-3 min-w-0">
-          <span className="font-semibold text-sm md:text-base text-neutral-200 truncate">
+      <header className="h-14 bg-slate-900 border-b border-slate-800 text-white px-3 sm:px-5 flex items-center justify-between gap-2 shrink-0 select-none z-30">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+          <button
+            type="button"
+            onClick={() => router.push('/tests')}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
+            title="Exit to Tests Catalog"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+          <span className="font-semibold text-xs sm:text-sm md:text-base text-slate-100 truncate">
             {testTitle}
           </span>
         </div>
 
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center shrink-0">
           <div
-            className={`px-3 py-1 rounded text-sm md:text-base font-mono font-bold tracking-wider border ${
+            className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs sm:text-sm md:text-base font-mono font-bold tracking-wider border flex items-center gap-1.5 ${
               isTimeCritical
                 ? 'bg-red-950/80 border-red-500 text-red-400 animate-pulse'
-                : 'bg-neutral-800 border-neutral-700 text-neutral-100'
+                : 'bg-slate-800/90 border-slate-700 text-slate-100'
             }`}
           >
-            {formattedTime}
+            <Clock className="w-3.5 h-3.5 text-slate-400 hidden xs:inline" />
+            <span>{formattedTime}</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-end gap-1.5 sm:gap-2 flex-1">
           <button
             type="button"
             onClick={() => setIsScreenHidden(true)}
-            className="px-2.5 py-1.5 rounded text-xs md:text-sm font-medium bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-neutral-300 transition-colors flex items-center gap-1.5"
+            className="px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition-colors flex items-center gap-1.5"
+            title="Hide Screen"
           >
-            <EyeOff className="w-4 h-4" />
-            <span className="hidden sm:inline">Hide Screen</span>
+            <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden md:inline">Hide</span>
           </button>
 
           <button
             type="button"
             onClick={() => setIsReviewModalOpen(true)}
-            className="px-2.5 py-1.5 rounded text-xs md:text-sm font-medium bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-neutral-300 transition-colors flex items-center gap-1.5"
+            className="px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition-colors flex items-center gap-1.5"
+            title="Review Questions"
           >
-            <ListChecks className="w-4 h-4" />
-            <span className="hidden sm:inline">Review</span>
+            <ListChecks className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden md:inline">Review</span>
           </button>
 
           <button
             type="button"
             onClick={() => setIsSubmitModalOpen(true)}
-            className="px-3 py-1.5 rounded text-xs md:text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors flex items-center gap-1.5 shadow-sm"
+            className="px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-colors flex items-center gap-1.5 shadow-sm"
           >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>Submit Test</span>
+            <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span>Submit</span>
           </button>
         </div>
       </header>
 
       {isScreenHidden && (
-        <div className="fixed inset-0 z-50 bg-neutral-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-white text-center">
+        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-white text-center">
           <div className="max-w-md space-y-4">
-            <EyeOff className="w-16 h-16 mx-auto text-neutral-400" />
+            <EyeOff className="w-14 h-14 mx-auto text-slate-400" />
             <h2 className="text-2xl font-bold">Screen Hidden</h2>
-            <p className="text-neutral-400 text-sm">
-              Your test is currently hidden. Countdown timer continues per IELTS rules.
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Your exam screen is currently hidden. The official countdown timer continues in the background per CD-IELTS regulations.
             </p>
             <button
               type="button"
               onClick={() => setIsScreenHidden(false)}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow transition-colors"
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow transition-colors text-sm"
             >
               Resume Test
             </button>
@@ -133,32 +146,32 @@ export function InsperaHeader({
 
       {isReviewModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-xl max-w-2xl w-full p-6 text-white shadow-2xl flex flex-col max-h-[85vh]">
-            <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
-              <h3 className="text-lg font-bold flex items-center gap-2">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-5 sm:p-6 text-white shadow-2xl flex flex-col max-h-[85vh]">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+              <h3 className="text-base sm:text-lg font-bold flex items-center gap-2">
                 <ListChecks className="w-5 h-5 text-blue-400" />
-                Test Review Overview
+                Question Palette &amp; Review Overview
               </h3>
               <button
                 type="button"
                 onClick={() => setIsReviewModalOpen(false)}
-                className="text-neutral-400 hover:text-white text-sm"
+                className="text-slate-400 hover:text-white text-xs sm:text-sm font-medium"
               >
                 Close
               </button>
             </div>
 
-            <div className="flex items-center gap-4 py-3 text-xs text-neutral-400 border-b border-neutral-800">
+            <div className="flex flex-wrap items-center gap-4 py-3 text-xs text-slate-400 border-b border-slate-800">
               <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-neutral-700 border border-neutral-600 inline-block" />
+                <span className="w-3 h-3 rounded bg-blue-600 inline-block" />
                 Answered ({totalQuestions - unansweredQuestions.length})
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-neutral-900 border border-neutral-700 inline-block" />
+                <span className="w-3 h-3 rounded bg-slate-800 border border-slate-700 inline-block" />
                 Unanswered ({unansweredQuestions.length})
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 inline-block" />
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" />
                 Flagged ({activeFlagged.length})
               </span>
             </div>
@@ -176,26 +189,26 @@ export function InsperaHeader({
                       if (onNavigate) onNavigate(qNum);
                       setIsReviewModalOpen(false);
                     }}
-                    className={`relative h-10 rounded text-xs font-semibold flex items-center justify-center transition-colors ${
+                    className={`relative h-10 rounded-lg text-xs font-semibold flex items-center justify-center transition-colors ${
                       isAnswered
-                        ? 'bg-neutral-700 text-white border border-neutral-600'
-                        : 'bg-neutral-900/60 text-neutral-400 border border-neutral-800 hover:border-neutral-600'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-slate-800/70 text-slate-300 border border-slate-700 hover:border-slate-500'
                     }`}
                   >
                     {qNum}
                     {isFlagged && (
-                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-400 rounded-full border border-neutral-900" />
+                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-400 rounded-full border border-slate-900" />
                     )}
                   </button>
                 );
               })}
             </div>
 
-            <div className="pt-4 border-t border-neutral-800 flex justify-end">
+            <div className="pt-4 border-t border-slate-800 flex justify-end">
               <button
                 type="button"
                 onClick={() => setIsReviewModalOpen(false)}
-                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded text-sm font-medium"
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs sm:text-sm font-medium"
               >
                 Back to Test
               </button>
@@ -206,32 +219,32 @@ export function InsperaHeader({
 
       {isSubmitModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-xl max-w-lg w-full p-6 text-white shadow-2xl space-y-5">
-            <div className="flex items-center gap-3 text-yellow-400">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-5 sm:p-6 text-white shadow-2xl space-y-5">
+            <div className="flex items-center gap-3 text-amber-400">
               <AlertTriangle className="w-6 h-6 shrink-0" />
               <h3 className="text-lg font-bold text-white">Confirm Test Submission</h3>
             </div>
 
-            <div className="space-y-3 text-sm text-neutral-300 bg-neutral-800/50 p-4 rounded-lg border border-neutral-800">
+            <div className="space-y-2.5 text-xs sm:text-sm text-slate-300 bg-slate-800/50 p-4 rounded-xl border border-slate-800">
               <div className="flex justify-between items-center">
-                <span>Total Questions:</span>
+                <span>Total Questions / Tasks:</span>
                 <span className="font-semibold text-white">{totalQuestions}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span>Answered:</span>
+                <span>Completed:</span>
                 <span className="font-semibold text-emerald-400">
                   {totalQuestions - unansweredQuestions.length}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span>Unanswered:</span>
-                <span className={`font-semibold ${unansweredQuestions.length > 0 ? 'text-amber-400' : 'text-neutral-400'}`}>
+                <span className={`font-semibold ${unansweredQuestions.length > 0 ? 'text-amber-400' : 'text-slate-400'}`}>
                   {unansweredQuestions.length}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span>Flagged for Review:</span>
-                <span className={`font-semibold ${activeFlagged.length > 0 ? 'text-yellow-400' : 'text-neutral-400'}`}>
+                <span className={`font-semibold ${activeFlagged.length > 0 ? 'text-amber-400' : 'text-slate-400'}`}>
                   {activeFlagged.length}
                 </span>
               </div>
@@ -239,10 +252,10 @@ export function InsperaHeader({
 
             {unansweredQuestions.length > 0 && (
               <div className="space-y-1.5">
-                <span className="text-xs text-neutral-400 font-medium">
-                  Unanswered Question Numbers:
+                <span className="text-xs text-slate-400 font-medium">
+                  Unanswered Items (tap to jump):
                 </span>
-                <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto p-2 bg-neutral-950/60 rounded border border-neutral-800">
+                <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-2.5 bg-slate-950/60 rounded-xl border border-slate-800">
                   {unansweredQuestions.map((q) => (
                     <button
                       key={q}
@@ -251,7 +264,7 @@ export function InsperaHeader({
                         if (onNavigate) onNavigate(q);
                         setIsSubmitModalOpen(false);
                       }}
-                      className="px-2 py-0.5 rounded text-xs bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+                      className="px-2 py-1 rounded-md text-xs bg-slate-800 text-slate-300 hover:bg-slate-700"
                     >
                       Q{q}
                     </button>
@@ -262,10 +275,10 @@ export function InsperaHeader({
 
             {activeFlagged.length > 0 && (
               <div className="space-y-1.5">
-                <span className="text-xs text-neutral-400 font-medium flex items-center gap-1">
-                  <Flag className="w-3.5 h-3.5 text-yellow-400" /> Flagged Question Numbers:
+                <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
+                  <Flag className="w-3.5 h-3.5 text-amber-400" /> Flagged Items:
                 </span>
-                <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto p-2 bg-neutral-950/60 rounded border border-neutral-800">
+                <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto p-2.5 bg-slate-950/60 rounded-xl border border-slate-800">
                   {activeFlagged.map((q) => (
                     <button
                       key={q}
@@ -274,7 +287,7 @@ export function InsperaHeader({
                         if (onNavigate) onNavigate(q);
                         setIsSubmitModalOpen(false);
                       }}
-                      className="px-2 py-0.5 rounded text-xs bg-yellow-950/60 border border-yellow-500/50 text-yellow-300 hover:bg-yellow-900/60"
+                      className="px-2 py-1 rounded-md text-xs bg-amber-950/60 border border-amber-500/50 text-amber-300 hover:bg-amber-900/60"
                     >
                       Q{q}
                     </button>
@@ -283,11 +296,11 @@ export function InsperaHeader({
               </div>
             )}
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-800">
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-800">
               <button
                 type="button"
                 onClick={() => setIsSubmitModalOpen(false)}
-                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded text-sm font-medium transition-colors"
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs sm:text-sm font-medium transition-colors"
               >
                 Return to Test
               </button>
@@ -297,9 +310,9 @@ export function InsperaHeader({
                   setIsSubmitModalOpen(false);
                   if (onSubmit) onSubmit();
                 }}
-                className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-medium transition-colors shadow"
+                className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs sm:text-sm font-semibold transition-colors shadow"
               >
-                Confirm & Submit
+                Confirm &amp; Submit
               </button>
             </div>
           </div>

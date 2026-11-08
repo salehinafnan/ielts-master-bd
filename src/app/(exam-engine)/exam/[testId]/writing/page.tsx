@@ -5,12 +5,12 @@ import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useExamStore } from '@/store/useExamStore';
 import { InsperaHeader } from '@/components/exam/InsperaHeader';
+import { MobileExamWarning } from '@/components/exam/MobileExamWarning';
 import { AIWritingEvaluation } from '@/lib/types';
 import {
   Sparkles,
   Loader2,
   CheckCircle2,
-  AlertTriangle,
   Lock,
   BookOpen,
   FileCheck,
@@ -22,6 +22,8 @@ import {
   Check,
   RefreshCw,
   ExternalLink,
+  FileText,
+  Edit3,
 } from 'lucide-react';
 
 interface WritingPromptData {
@@ -73,63 +75,67 @@ function InternetAccessBarChart() {
   ];
 
   return (
-    <div className="mt-4 rounded-xl border border-neutral-700 bg-white p-5 text-neutral-900 shadow-sm">
+    <div className="mt-4 rounded-xl border border-slate-700 bg-white p-4 sm:p-5 text-slate-900 shadow-xs">
       <div className="mb-4 text-center">
-        <h4 className="font-bold text-sm md:text-base text-neutral-900 tracking-tight">
+        <h4 className="font-bold text-xs sm:text-sm md:text-base text-slate-900 tracking-tight">
           Percentage of Households with Internet Access (2005 vs 2015)
         </h4>
-        <p className="text-xs text-neutral-500 mt-0.5">Official IELTS Academic Writing Task 1 Data</p>
+        <p className="text-[11px] text-slate-500 mt-0.5">Official IELTS Academic Writing Task 1 Data</p>
       </div>
 
       <div className="flex justify-center gap-6 mb-4 text-xs font-semibold">
         <div className="flex items-center gap-2">
-          <span className="inline-block w-3.5 h-3.5 rounded bg-blue-600"></span>
-          <span className="text-neutral-700">2005</span>
+          <span className="inline-block w-3 h-3 rounded bg-blue-600"></span>
+          <span className="text-slate-700">2005</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-block w-3.5 h-3.5 rounded bg-emerald-600"></span>
-          <span className="text-neutral-700">2015</span>
+          <span className="inline-block w-3 h-3 rounded bg-emerald-600"></span>
+          <span className="text-slate-700">2015</span>
         </div>
       </div>
 
-      <div className="relative pt-6 pb-2 border-b-2 border-l-2 border-neutral-300">
+      <div className="relative pt-6 pb-2 border-b-2 border-l-2 border-slate-300">
         <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
-          <div className="border-b border-neutral-400 w-full"></div>
-          <div className="border-b border-neutral-400 w-full"></div>
-          <div className="border-b border-neutral-400 w-full"></div>
-          <div className="border-b border-neutral-400 w-full"></div>
-          <div className="border-b border-neutral-400 w-full"></div>
+          <div className="border-b border-slate-400 w-full"></div>
+          <div className="border-b border-slate-400 w-full"></div>
+          <div className="border-b border-slate-400 w-full"></div>
+          <div className="border-b border-slate-400 w-full"></div>
+          <div className="border-b border-slate-400 w-full"></div>
         </div>
 
-        <div className="relative grid grid-cols-5 gap-2 sm:gap-4 items-end h-52 px-2 z-10">
+        <div className="relative grid grid-cols-5 gap-1.5 sm:gap-4 items-end h-44 sm:h-52 px-1 sm:px-2 z-10">
           {chartData.map((item) => (
             <div key={item.country} className="flex flex-col items-center h-full justify-end">
-              <div className="flex items-end justify-center gap-1.5 w-full h-full">
-                <div className="flex flex-col items-center flex-1 max-w-[28px] h-full justify-end">
-                  <span className="text-[10px] font-bold text-blue-700 mb-0.5">{item.val2005}%</span>
+              <div className="flex items-end justify-center gap-1 sm:gap-1.5 w-full h-full">
+                <div className="flex flex-col items-center flex-1 max-w-[26px] h-full justify-end">
+                  <span className="text-[9px] sm:text-[10px] font-bold text-blue-700 mb-0.5">
+                    {item.val2005}%
+                  </span>
                   <div
-                    className="w-full bg-blue-600 rounded-t shadow-sm transition-all duration-300"
+                    className="w-full bg-blue-600 rounded-t shadow-xs transition-all duration-300"
                     style={{ height: `${item.val2005}%` }}
                     title={`2005: ${item.val2005}%`}
                   />
                 </div>
-                <div className="flex flex-col items-center flex-1 max-w-[28px] h-full justify-end">
-                  <span className="text-[10px] font-bold text-emerald-700 mb-0.5">{item.val2015}%</span>
+                <div className="flex flex-col items-center flex-1 max-w-[26px] h-full justify-end">
+                  <span className="text-[9px] sm:text-[10px] font-bold text-emerald-700 mb-0.5">
+                    {item.val2015}%
+                  </span>
                   <div
-                    className="w-full bg-emerald-600 rounded-t shadow-sm transition-all duration-300"
+                    className="w-full bg-emerald-600 rounded-t shadow-xs transition-all duration-300"
                     style={{ height: `${item.val2015}%` }}
                     title={`2015: ${item.val2015}%`}
                   />
                 </div>
               </div>
-              <span className="text-xs font-bold text-neutral-800 mt-2 truncate w-full text-center">
+              <span className="text-[11px] sm:text-xs font-bold text-slate-800 mt-2 truncate w-full text-center">
                 {item.country}
               </span>
             </div>
           ))}
         </div>
       </div>
-      <div className="flex justify-between text-[10px] text-neutral-400 mt-1 px-1">
+      <div className="flex justify-between text-[10px] text-slate-400 mt-1 px-1">
         <span>0%</span>
         <span>25%</span>
         <span>50%</span>
@@ -146,6 +152,7 @@ function WritingExamContent() {
   const testId = params?.testId as string;
 
   const [activeTask, setActiveTask] = useState<1 | 2>(1);
+  const [mobilePane, setMobilePane] = useState<'prompt' | 'editor'>('prompt');
   const [testTitle, setTestTitle] = useState<string>('IELTS Academic Writing');
   const [prompts, setPrompts] = useState<WritingPromptData>(DEFAULT_PROMPTS);
   const [loading, setLoading] = useState<boolean>(true);
@@ -202,10 +209,7 @@ function WritingExamContent() {
             setPrompts({
               task1: {
                 title: t1?.title || 'Task 1: Academic Report',
-                prompt:
-                  t1?.promptText ||
-                  t1?.prompt ||
-                  DEFAULT_PROMPTS.task1.prompt,
+                prompt: t1?.promptText || t1?.prompt || DEFAULT_PROMPTS.task1.prompt,
                 imageUrl: t1?.imageUrl,
                 chartType: t1?.type || t1?.chartType || 'bar_chart',
                 imageDescription: t1?.imageDescription,
@@ -213,17 +217,13 @@ function WritingExamContent() {
               },
               task2: {
                 title: t2?.title || 'Task 2: Academic Essay',
-                prompt:
-                  t2?.promptText ||
-                  t2?.prompt ||
-                  DEFAULT_PROMPTS.task2.prompt,
+                prompt: t2?.promptText || t2?.prompt || DEFAULT_PROMPTS.task2.prompt,
                 imageUrl: t2?.imageUrl,
                 minWords: t2?.minWords || 250,
               },
             });
           }
 
-          // Initialize 60 minutes countdown in store
           initExam(`${testId}:writing`, 3600);
         }
       } catch (err: any) {
@@ -242,12 +242,10 @@ function WritingExamContent() {
     };
   }, [testId, initExam]);
 
-  // Current active essay
   const currentEssay = answers[activeTask] || '';
   const currentMinWords = activeTask === 1 ? prompts.task1.minWords : prompts.task2.minWords;
   const currentWordCount = useMemo(() => getWordCount(currentEssay), [currentEssay]);
 
-  // Word counter styling logic
   let wordBadgeClass = 'text-red-400 bg-red-950/60 border-red-500/40';
   let wordStatusText = `${currentMinWords - currentWordCount} words below minimum`;
 
@@ -259,12 +257,10 @@ function WritingExamContent() {
     wordStatusText = `Almost there! ${currentMinWords - currentWordCount} words to minimum`;
   }
 
-  // Handle textarea text change
   const handleEssayChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setAnswer(activeTask, e.target.value);
   };
 
-  // Submit essay for instant AI evaluation
   const handleSubmitGrading = async () => {
     if (!currentEssay || currentEssay.trim().length === 0) {
       alert(`Please write your essay for Task ${activeTask} before submitting.`);
@@ -302,7 +298,7 @@ function WritingExamContent() {
       if (res.status === 403) {
         setUpgradeMessage(
           data.message ||
-            'You have reached your AI grading limit. Upgrade to IELTS Master BD Pro for unlimited AI evaluations.'
+            'You have reached your AI grading limit. Upgrade to IELTS Master BD Pro for more daily AI evaluations.'
         );
         setShowUpgradeModal(true);
         return;
@@ -326,101 +322,133 @@ function WritingExamContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-950 text-white flex flex-col items-center justify-center gap-4">
+      <div className="h-[100dvh] bg-slate-950 text-white flex flex-col items-center justify-center gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
-        <p className="text-sm font-medium text-neutral-400">Loading IELTS Writing simulator...</p>
+        <p className="text-sm font-medium text-slate-400">Loading IELTS Writing simulator...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col select-none">
-      {/* INSPERA TOP HEADER BAR (Countdown timer, screen obscurer) */}
+    <div className="h-[100dvh] overflow-hidden bg-slate-950 text-slate-100 flex flex-col select-none">
+      <MobileExamWarning moduleName="Academic Writing" />
+
       <InsperaHeader
         testTitle={`${testTitle} (Task ${activeTask})`}
         totalQuestions={2}
         onSubmit={handleSubmitGrading}
       />
 
-      {/* TASK SWITCHER TABS */}
-      <div className="bg-neutral-900 border-b border-neutral-800 px-4 md:px-6 py-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTask(1);
-              setEvaluation(null);
-            }}
-            className={`px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-colors flex items-center gap-2 ${
-              activeTask === 1
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-neutral-800 text-neutral-400 hover:text-white'
-            }`}
-          >
-            <PenTool className="w-3.5 h-3.5" />
-            Task 1 (Report &bull; 150w)
-            {answers[1] && answers[1].trim().length > 0 && (
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            )}
-          </button>
+      {/* TASK SWITCHER TABS + MOBILE PANE SWITCHER */}
+      <div className="bg-slate-900 border-b border-slate-800 px-3 sm:px-6 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shrink-0">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTask(1);
+                setEvaluation(null);
+              }}
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 ${
+                activeTask === 1
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-slate-800 text-slate-400 hover:text-white'
+              }`}
+            >
+              <PenTool className="w-3.5 h-3.5" />
+              <span>Task 1 (150w)</span>
+              {answers[1] && answers[1].trim().length > 0 && (
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              )}
+            </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTask(2);
-              setEvaluation(null);
-            }}
-            className={`px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-colors flex items-center gap-2 ${
-              activeTask === 2
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-neutral-800 text-neutral-400 hover:text-white'
-            }`}
-          >
-            <PenTool className="w-3.5 h-3.5" />
-            Task 2 (Essay &bull; 250w)
-            {answers[2] && answers[2].trim().length > 0 && (
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            )}
-          </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTask(2);
+                setEvaluation(null);
+              }}
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 ${
+                activeTask === 2
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-slate-800 text-slate-400 hover:text-white'
+              }`}
+            >
+              <PenTool className="w-3.5 h-3.5" />
+              <span>Task 2 (250w)</span>
+              {answers[2] && answers[2].trim().length > 0 && (
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              )}
+            </button>
+          </div>
+
+          {evaluation && (
+            <button
+              type="button"
+              onClick={() => setEvaluation(null)}
+              className="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Editor</span>
+            </button>
+          )}
         </div>
 
-        {evaluation && (
-          <button
-            type="button"
-            onClick={() => setEvaluation(null)}
-            className="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1.5"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Return to Editor
-          </button>
+        {/* Mobile Prompt vs Editor Toggle */}
+        {!evaluation && (
+          <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-800 p-1 lg:hidden">
+            <button
+              type="button"
+              onClick={() => setMobilePane('prompt')}
+              className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-semibold transition-all ${
+                mobilePane === 'prompt'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Prompt &amp; Chart</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobilePane('editor')}
+              className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-semibold transition-all ${
+                mobilePane === 'editor'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>Write ({currentWordCount}w)</span>
+            </button>
+          </div>
         )}
       </div>
 
       {/* MAIN CONTENT AREA: SPLIT-SCREEN OR REPORT CARD */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden flex flex-col">
         {evaluation ? (
           /* ================= ON SUCCESS: AI REPORT CARD ================= */
-          <div className="h-[calc(100vh-108px)] overflow-y-auto p-4 md:p-8 max-w-5xl mx-auto space-y-6 select-text">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 max-w-5xl mx-auto w-full space-y-6 select-text">
             {/* OVERALL HERO CARD */}
-            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 md:p-8 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-8 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="space-y-2 text-center md:text-left">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-neutral-800 text-blue-400 border border-neutral-700">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-slate-800 text-blue-400 border border-slate-700">
                   <Sparkles className="w-3.5 h-3.5" />
                   Official British Council Examiner Standard
                 </div>
-                <h1 className="text-2xl md:text-3xl font-extrabold text-white">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white">
                   IELTS Writing Task {activeTask} Evaluation
                 </h1>
-                <p className="text-xs md:text-sm text-neutral-400">
+                <p className="text-xs sm:text-sm text-slate-400">
                   Total Words Submitted: <strong className="text-white">{currentWordCount}</strong> &bull; Recommended Minimum:{' '}
                   <strong className="text-white">{currentMinWords}</strong>
                 </p>
               </div>
 
-              {/* OVERALL BAND CIRCLE */}
-              <div className="flex flex-col items-center justify-center">
+              <div className="flex flex-col items-center justify-center shrink-0">
                 <div
-                  className={`w-28 h-28 rounded-full border-4 flex flex-col items-center justify-center shadow-lg transition-transform ${
+                  className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 flex flex-col items-center justify-center shadow-lg ${
                     evaluation.overallBand >= 7.0
                       ? 'border-emerald-500 bg-emerald-950/40 text-emerald-400'
                       : evaluation.overallBand >= 6.0
@@ -428,71 +456,71 @@ function WritingExamContent() {
                       : 'border-rose-500 bg-rose-950/40 text-rose-400'
                   }`}
                 >
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Band
                   </span>
-                  <span className="text-4xl font-black">
+                  <span className="text-3xl sm:text-4xl font-black">
                     {evaluation.overallBand.toFixed(1)}
                   </span>
                 </div>
-                <span className="text-xs text-neutral-400 mt-2 font-medium">Overall Score</span>
+                <span className="text-xs text-slate-400 mt-2 font-medium">Overall Score</span>
               </div>
             </div>
 
             {/* 4 OFFICIAL CRITERIA CARDS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-2">
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                     Task Response
                   </span>
                   <span className="text-lg font-black text-blue-400">
                     {evaluation.taskResponse?.band?.toFixed(1) || 'N/A'}
                   </span>
                 </div>
-                <p className="text-xs text-neutral-300 leading-relaxed">
+                <p className="text-xs text-slate-300 leading-relaxed">
                   {evaluation.taskResponse?.feedback}
                 </p>
               </div>
 
-              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-2">
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
-                    Coherence & Cohesion
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Coherence &amp; Cohesion
                   </span>
                   <span className="text-lg font-black text-blue-400">
                     {evaluation.coherenceCohesion?.band?.toFixed(1) || 'N/A'}
                   </span>
                 </div>
-                <p className="text-xs text-neutral-300 leading-relaxed">
+                <p className="text-xs text-slate-300 leading-relaxed">
                   {evaluation.coherenceCohesion?.feedback}
                 </p>
               </div>
 
-              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-2">
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                     Lexical Resource
                   </span>
                   <span className="text-lg font-black text-blue-400">
                     {evaluation.lexicalResource?.band?.toFixed(1) || 'N/A'}
                   </span>
                 </div>
-                <p className="text-xs text-neutral-300 leading-relaxed">
+                <p className="text-xs text-slate-300 leading-relaxed">
                   {evaluation.lexicalResource?.feedback}
                 </p>
               </div>
 
-              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-2">
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                     Grammatical Range
                   </span>
                   <span className="text-lg font-black text-blue-400">
                     {evaluation.grammaticalRange?.band?.toFixed(1) || 'N/A'}
                   </span>
                 </div>
-                <p className="text-xs text-neutral-300 leading-relaxed">
+                <p className="text-xs text-slate-300 leading-relaxed">
                   {evaluation.grammaticalRange?.feedback}
                 </p>
               </div>
@@ -500,33 +528,33 @@ function WritingExamContent() {
 
             {/* SENTENCE CORRECTIONS DIFF-STYLE */}
             {evaluation.sentenceCorrections && evaluation.sentenceCorrections.length > 0 && (
-              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-4">
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 sm:p-6 space-y-4">
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                   <FileCheck className="w-5 h-5 text-emerald-400" />
-                  Sentence Corrections & Grammar Improvements
+                  Sentence Corrections &amp; Grammar Improvements
                 </h3>
                 <div className="space-y-3">
                   {evaluation.sentenceCorrections.map((sc, idx) => (
                     <div
                       key={idx}
-                      className="p-4 bg-neutral-950/80 rounded-xl border border-neutral-800/80 space-y-2 text-xs"
+                      className="p-4 bg-slate-950/80 rounded-xl border border-slate-800/80 space-y-2 text-xs"
                     >
-                      <div className="p-2.5 rounded bg-rose-950/40 border border-rose-900/40 text-rose-300">
+                      <div className="p-2.5 rounded-lg bg-rose-950/40 border border-rose-900/40 text-rose-300">
                         <span className="font-bold text-rose-400 uppercase tracking-wider block mb-1">
                           Original:
                         </span>
                         <span className="line-through opacity-90">{sc.original}</span>
                       </div>
 
-                      <div className="p-2.5 rounded bg-emerald-950/40 border border-emerald-900/40 text-emerald-300">
+                      <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-900/40 text-emerald-300">
                         <span className="font-bold text-emerald-400 uppercase tracking-wider block mb-1">
                           Revision:
                         </span>
                         <span>{sc.corrected}</span>
                       </div>
 
-                      <div className="text-neutral-400 italic pt-1 flex items-start gap-1.5">
-                        <span className="font-semibold text-neutral-300 not-italic">Reason:</span>
+                      <div className="text-slate-400 italic pt-1 flex items-start gap-1.5">
+                        <span className="font-semibold text-slate-300 not-italic">Reason:</span>
                         <span>{sc.reason}</span>
                       </div>
                     </div>
@@ -537,7 +565,7 @@ function WritingExamContent() {
 
             {/* VOCABULARY UPGRADES TABLE */}
             {evaluation.vocabularyUpgrades && evaluation.vocabularyUpgrades.length > 0 && (
-              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-4">
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 sm:p-6 space-y-4">
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                   <Award className="w-5 h-5 text-amber-400" />
                   Band 8+ Lexical Resource Upgrades
@@ -545,22 +573,22 @@ function WritingExamContent() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="border-b border-neutral-800 text-neutral-400">
+                      <tr className="border-b border-slate-800 text-slate-400">
                         <th className="py-2.5 px-3">Basic Expression</th>
                         <th className="py-2.5 px-3">Band 8+ Alternative</th>
                         <th className="py-2.5 px-3">Contextual Example</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-neutral-800/60">
+                    <tbody className="divide-y divide-slate-800/60">
                       {evaluation.vocabularyUpgrades.map((vocab, idx) => (
-                        <tr key={idx} className="hover:bg-neutral-800/30">
+                        <tr key={idx} className="hover:bg-slate-800/30">
                           <td className="py-3 px-3 text-rose-300 font-medium">
                             {vocab.basicWord}
                           </td>
                           <td className="py-3 px-3 text-emerald-300 font-bold">
                             {vocab.band8Alternative}
                           </td>
-                          <td className="py-3 px-3 text-neutral-300 italic">
+                          <td className="py-3 px-3 text-slate-300 italic">
                             &quot;{vocab.contextExample}&quot;
                           </td>
                         </tr>
@@ -573,11 +601,11 @@ function WritingExamContent() {
 
             {/* COLLAPSIBLE MODEL BAND 8 ESSAY */}
             {evaluation.modelBand8Essay && (
-              <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
+              <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
                 <button
                   type="button"
                   onClick={() => setIsModelEssayOpen((prev) => !prev)}
-                  className="w-full p-5 flex items-center justify-between text-left hover:bg-neutral-800/40 transition-colors"
+                  className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-800/40 transition-colors"
                 >
                   <div className="flex items-center gap-2">
                     <BookOpen className="w-5 h-5 text-blue-400" />
@@ -586,14 +614,14 @@ function WritingExamContent() {
                     </span>
                   </div>
                   {isModelEssayOpen ? (
-                    <ChevronUp className="w-4 h-4 text-neutral-400" />
+                    <ChevronUp className="w-4 h-4 text-slate-400" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-neutral-400" />
+                    <ChevronDown className="w-4 h-4 text-slate-400" />
                   )}
                 </button>
 
                 {isModelEssayOpen && (
-                  <div className="px-6 pb-6 pt-2 border-t border-neutral-800/60 text-xs md:text-sm text-neutral-300 leading-relaxed whitespace-pre-wrap font-serif">
+                  <div className="px-6 pb-6 pt-2 border-t border-slate-800/60 text-xs sm:text-sm text-slate-300 leading-relaxed whitespace-pre-wrap font-serif">
                     {evaluation.modelBand8Essay}
                   </div>
                 )}
@@ -602,7 +630,7 @@ function WritingExamContent() {
 
             {/* ACTIONABLE NEXT STEPS CHECKLIST */}
             {evaluation.actionableNextSteps && evaluation.actionableNextSteps.length > 0 && (
-              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-4">
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 sm:p-6 space-y-4">
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-blue-400" />
                   Actionable Next Steps to Reach Your Target Band
@@ -611,7 +639,7 @@ function WritingExamContent() {
                   {evaluation.actionableNextSteps.map((step, idx) => (
                     <div
                       key={idx}
-                      className="p-3 bg-neutral-950/70 rounded-lg border border-neutral-800/60 flex items-start gap-3 text-xs md:text-sm text-neutral-300"
+                      className="p-3 bg-slate-950/70 rounded-lg border border-slate-800/60 flex items-start gap-3 text-xs sm:text-sm text-slate-300"
                     >
                       <div className="w-5 h-5 rounded-full bg-blue-950 border border-blue-600/40 text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
                         <Check className="w-3 h-3" />
@@ -624,21 +652,21 @@ function WritingExamContent() {
             )}
 
             {/* FOOTER ACTIONS */}
-            <div className="pt-4 flex flex-wrap items-center justify-between gap-4 border-t border-neutral-800">
+            <div className="pt-4 flex flex-wrap items-center justify-between gap-4 border-t border-slate-800">
               <button
                 type="button"
                 onClick={() => setEvaluation(null)}
-                className="px-5 py-2.5 rounded-xl text-xs md:text-sm font-semibold bg-neutral-800 hover:bg-neutral-700 text-white transition-colors"
+                className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-colors"
               >
                 Back to Edit Essay
               </button>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 {latestAttemptId && (
                   <button
                     type="button"
                     onClick={() => router.push(`/exam/${testId}/results/${latestAttemptId}`)}
-                    className="px-5 py-2.5 rounded-xl text-xs md:text-sm font-semibold bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-blue-400 hover:text-blue-300 flex items-center gap-2 transition-colors"
+                    className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-blue-400 hover:text-blue-300 flex items-center gap-2 transition-colors"
                   >
                     View Official Results Page
                     <ExternalLink className="w-4 h-4" />
@@ -648,7 +676,7 @@ function WritingExamContent() {
                 <button
                   type="button"
                   onClick={() => router.push('/dashboard')}
-                  className="px-6 py-2.5 rounded-xl text-xs md:text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+                  className="px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-colors"
                 >
                   Return to Dashboard
                 </button>
@@ -657,30 +685,34 @@ function WritingExamContent() {
           </div>
         ) : (
           /* ================= SPLIT-SCREEN EXAM ENGINE ================= */
-          <div className="h-[calc(100vh-108px)] grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-neutral-800">
+          <div className="flex-1 overflow-hidden flex flex-col lg:grid lg:grid-cols-2 lg:divide-x divide-slate-800">
             {/* LEFT COLUMN: TASK PROMPT & INSTRUCTIONS */}
-            <div className="h-full overflow-y-auto p-6 md:p-8 space-y-6 bg-neutral-950">
-              <div className="space-y-2">
+            <div
+              className={`flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 bg-slate-950 ${
+                mobilePane === 'prompt' ? 'block' : 'hidden lg:block'
+              }`}
+            >
+              <div className="space-y-1.5">
                 <span className="text-xs font-bold uppercase tracking-wider text-blue-400">
                   {activeTask === 1 ? prompts.task1.title : prompts.task2.title}
                 </span>
-                <h2 className="text-xl md:text-2xl font-bold text-white">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
                   Official IELTS Writing Task {activeTask} Prompt
                 </h2>
-                <p className="text-xs text-neutral-400">
+                <p className="text-xs text-slate-400">
                   {activeTask === 1
                     ? 'You should spend about 20 minutes on this task. Write at least 150 words.'
                     : 'You should spend about 40 minutes on this task. Write at least 250 words.'}
                 </p>
               </div>
 
-              <div className="p-6 bg-neutral-900 border border-neutral-800 rounded-xl space-y-4">
-                <div className="text-sm md:text-base text-neutral-200 leading-relaxed whitespace-pre-wrap">
+              <div className="p-4 sm:p-6 bg-slate-900 border border-slate-800 rounded-xl space-y-4">
+                <div className="text-sm sm:text-base text-slate-200 leading-relaxed whitespace-pre-wrap">
                   {activeTask === 1 ? prompts.task1.prompt : prompts.task2.prompt}
                 </div>
 
                 {(activeTask === 1 ? prompts.task1.imageUrl : prompts.task2.imageUrl) ? (
-                  <div className="mt-4 rounded-lg overflow-hidden border border-neutral-800">
+                  <div className="mt-4 rounded-lg overflow-hidden border border-slate-800">
                     <img
                       src={activeTask === 1 ? prompts.task1.imageUrl : prompts.task2.imageUrl}
                       alt={`Writing Task ${activeTask} Chart/Diagram`}
@@ -692,28 +724,43 @@ function WritingExamContent() {
                 ) : null}
               </div>
 
-              <div className="p-4 bg-neutral-900/50 rounded-xl border border-neutral-800/80 text-xs text-neutral-400 space-y-2">
-                <span className="font-bold text-neutral-300 uppercase tracking-wider block">
+              <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-800/80 text-xs text-slate-400 space-y-2">
+                <span className="font-bold text-slate-300 uppercase tracking-wider block">
                   Examiner Assessment Criteria:
                 </span>
                 <ul className="list-disc list-inside space-y-1">
                   <li>Task Achievement / Task Response (25%)</li>
-                  <li>Coherence & Cohesion (25%)</li>
+                  <li>Coherence &amp; Cohesion (25%)</li>
                   <li>Lexical Resource (25%)</li>
-                  <li>Grammatical Range & Accuracy (25%)</li>
+                  <li>Grammatical Range &amp; Accuracy (25%)</li>
                 </ul>
+              </div>
+
+              <div className="lg:hidden pt-2">
+                <button
+                  type="button"
+                  onClick={() => setMobilePane('editor')}
+                  className="w-full py-2.5 rounded-xl bg-blue-600 text-white text-xs font-semibold flex items-center justify-center gap-2"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  <span>Switch to Essay Editor</span>
+                </button>
               </div>
             </div>
 
             {/* RIGHT COLUMN: TEXTAREA & LIVE WORD COUNTER */}
-            <div className="h-full flex flex-col p-6 md:p-8 bg-neutral-950">
+            <div
+              className={`flex-1 flex flex-col p-4 sm:p-6 md:p-8 bg-slate-950 min-h-0 ${
+                mobilePane === 'editor' ? 'flex' : 'hidden lg:flex'
+              }`}
+            >
               <div className="flex-1 flex flex-col min-h-0">
-                <div className="flex items-center justify-between pb-3">
-                  <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
-                    Your Response
+                <div className="flex items-center justify-between pb-2.5">
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Your Response (Task {activeTask})
                   </span>
-                  <span className="text-xs text-neutral-500">
-                    Auto-saved continuously in browser
+                  <span className="text-[11px] text-slate-500">
+                    Auto-saved in browser
                   </span>
                 </div>
 
@@ -723,19 +770,19 @@ function WritingExamContent() {
                   value={currentEssay}
                   onChange={handleEssayChange}
                   placeholder={`Write your IELTS Writing Task ${activeTask} essay here... (Spell-check is disabled to strictly simulate official Inspera CD-IELTS conditions)`}
-                  className="flex-1 w-full bg-neutral-900 text-neutral-100 placeholder:text-neutral-600 rounded-xl p-5 text-base leading-relaxed border border-neutral-800 focus:border-blue-500 focus:outline-none resize-none font-sans"
+                  className="flex-1 w-full bg-slate-900 text-slate-100 placeholder:text-slate-600 rounded-xl p-4 sm:p-5 text-sm sm:text-base leading-relaxed border border-slate-800 focus:border-blue-500 focus:outline-none resize-none font-sans"
                 />
               </div>
 
               {/* BOTTOM TOOLBAR: WORD COUNTER & SUBMIT BUTTON */}
-              <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
+              <div className="pt-3 sm:pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center justify-between sm:justify-start gap-3">
                   <div
                     className={`px-3 py-1.5 rounded-lg border text-xs font-bold uppercase tracking-wider ${wordBadgeClass}`}
                   >
                     Words: {currentWordCount} / {currentMinWords} min
                   </div>
-                  <span className="text-xs text-neutral-400 hidden sm:inline">
+                  <span className="text-xs text-slate-400">
                     {wordStatusText}
                   </span>
                 </div>
@@ -751,7 +798,7 @@ function WritingExamContent() {
                     type="button"
                     disabled={isSubmitting}
                     onClick={handleSubmitGrading}
-                    className="px-6 py-2.5 rounded-xl font-bold text-xs md:text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-neutral-800 disabled:text-neutral-500 text-white shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-500 text-white shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
                   >
                     {isSubmitting ? (
                       <>
@@ -775,24 +822,24 @@ function WritingExamContent() {
       {/* MODAL: UPGRADE TO PRO (ON 403 RATE LIMIT) */}
       {showUpgradeModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl max-w-md w-full p-6 text-white shadow-2xl space-y-5">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 text-white shadow-2xl space-y-5">
             <div className="w-12 h-12 rounded-2xl bg-amber-950/80 border border-amber-500/40 text-amber-400 flex items-center justify-center mx-auto">
               <Lock className="w-6 h-6" />
             </div>
 
             <div className="text-center space-y-2">
               <h3 className="text-xl font-bold text-white">AI Grading Limit Reached</h3>
-              <p className="text-sm text-neutral-300 leading-relaxed">{upgradeMessage}</p>
+              <p className="text-sm text-slate-300 leading-relaxed">{upgradeMessage}</p>
             </div>
 
-            <div className="p-4 bg-neutral-950/80 rounded-xl border border-neutral-800 text-xs space-y-2 text-neutral-300">
+            <div className="p-4 bg-slate-950/80 rounded-xl border border-slate-800 text-xs space-y-2 text-slate-300">
               <span className="font-bold text-white block uppercase tracking-wider">
                 Unlock Pro Features:
               </span>
               <ul className="space-y-1.5 list-disc list-inside">
-                <li>Unlimited AI Writing & Speaking evaluations</li>
-                <li>Band 8+ Model Answers & Vocabulary Upgrades</li>
-                <li>Instant bKash / Nagad verification</li>
+                <li>Higher daily AI Writing &amp; Speaking evaluations</li>
+                <li>Band 8.5+ Model Answers &amp; Vocabulary Upgrades</li>
+                <li>Direct bKash / Nagad verification</li>
                 <li>Full mock tests and Cambridge Grader</li>
               </ul>
             </div>
@@ -801,14 +848,14 @@ function WritingExamContent() {
               <button
                 type="button"
                 onClick={() => setShowUpgradeModal(false)}
-                className="w-1/2 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-xl text-xs font-semibold transition-colors"
+                className="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-colors"
               >
                 Close
               </button>
               <button
                 type="button"
                 onClick={() => router.push('/pricing')}
-                className="w-1/2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-md"
+                className="w-1/2 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-md"
               >
                 Upgrade to Pro
                 <ArrowRight className="w-4 h-4" />
@@ -825,7 +872,7 @@ export default function WritingExamPage() {
   return (
     <React.Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-slate-900 text-white">
+        <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
           <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
         </div>
       }
